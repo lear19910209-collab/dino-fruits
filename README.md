@@ -52,7 +52,7 @@
 ---
 
 ## 📸 游戏封面
-![Game Cover](A_2D_digital_illustration_displays_a_scene_from_a_.png)
+![Game Cover](834B9316-38B9-4A3D-869F-AA0B02492248.png)
 
 ---
 
