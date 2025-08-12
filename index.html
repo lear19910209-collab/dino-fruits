@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>小恐龙躲水果 · 画面+玩法进阶版</title>
+<title>小恐龙躲水果 · 关卡&道具&排行榜版</title>
 <style>
   html,body{height:100%;margin:0;background:#0e0f13;color:#eef;font-family:system-ui,-apple-system,Segoe UI,Roboto}
   .wrap{display:flex;align-items:center;justify-content:center;height:100%}
@@ -18,16 +18,19 @@
   .card{background:#151a22;border:1px solid #2a2f3a;padding:18px 20px;border-radius:14px;text-align:center;max-width:92vw;color:#dfe7ff}
   .btn{display:inline-block;margin-top:12px;padding:10px 16px;border-radius:10px;border:1px solid #2a2f3a;background:#18202b;cursor:pointer;user-select:none}
   .small{opacity:.8;font-size:13px;margin-top:6px}
-  .meter{position:fixed;right:12px;top:56px;width:140px;height:10px;border:1px solid #2a2f3a;border-radius:8px;background:rgba(255,255,255,.06);overflow:hidden}
+  .meter{position:fixed;right:12px;top:56px;width:150px;height:10px;border:1px solid #2a2f3a;border-radius:8px;background:rgba(255,255,255,.06);overflow:hidden}
   .meter>i{display:block;height:100%;background:#6ce1ff;transform-origin:left center;transition:width .1s}
-  .shieldbar{position:fixed;right:12px;top:74px;width:140px;height:10px;border:1px solid #2a2f3a;border-radius:8px;background:rgba(255,255,255,.06);overflow:hidden}
+  .shieldbar{position:fixed;right:12px;top:74px;width:150px;height:10px;border:1px solid #2a2f3a;border-radius:8px;background:rgba(255,255,255,.06);overflow:hidden}
   .shieldbar>i{display:block;height:100%;background:#7dffa5;transform-origin:left center;transition:width .1s}
   .combo{position:fixed;left:50%;top:58px;transform:translateX(-50%);font-weight:900;font-size:20px;pointer-events:none;text-shadow:0 2px 8px rgba(0,0,0,.5);opacity:.95}
-  .tip{position:fixed;left:12px;bottom:12px;font-size:12px;opacity:.75}
+  .levelBanner{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);font-size:28px;font-weight:900;letter-spacing:.5px;background:rgba(0,0,0,.35);padding:10px 14px;border:1px solid #2a2f3a;border-radius:12px;opacity:0;transition:opacity .3s}
+  .tip{position:fixed;left:12px;bottom:12px;font-size:12px;opacity:.78}
+  .lb{position:fixed;right:12px;bottom:12px;font-size:12px;opacity:.8;background:rgba(255,255,255,.06);border:1px solid #2a2f3a;border-radius:10px;padding:6px 10px}
+  input[type=text]{width:220px;padding:8px 10px;border-radius:10px;border:1px solid #2a2f3a;background:#10151d;color:#dfe7ff}
 </style>
 </head>
 <body>
-  <div class="tag">🦖 Dino & Fruits · v4.0</div>
+  <div class="tag">🦖 Dino & Fruits · v5.0</div>
 
   <div class="hud">
     分数：<span id="score">0</span>
@@ -44,19 +47,35 @@
   <div class="shieldbar" title="护盾剩余（拾取绿色道具）"><i id="shieldFill" style="width:0%"></i></div>
   <div id="comboEl" class="combo"></div>
   <div id="tip" class="tip"></div>
+  <div id="banner" class="levelBanner"></div>
+  <div id="lbBtn" class="lb" title="查看排行榜">🏆 排行榜</div>
 
   <div class="wrap"><canvas id="game" width="520" height="820"></canvas></div>
 
   <div id="overlay" class="overlay">
-    <div class="card">
-      <h2 style="margin:6px 0 6px">小恐龙躲水果 · 进阶版</h2>
+    <div class="card" id="menuCard">
+      <h2 style="margin:6px 0 6px">小恐龙躲水果 · 关卡进阶</h2>
       <div id="msg">
-        躲避水果，拾取绿色护盾。<br>
-        <b>Shift 冲刺</b>击碎水果触发<strong>连击</strong>（分数翻倍上涨）；<br>
-        捕捉<strong>金苹果</strong>可直接 +5 分。你有 <b>3</b> 条命！
+        每 30 秒升一关并切换规则：Gold Rush / Bomb Storm / Ice Age / Heavy Rain / Reverse Controls / Speed Up。<br>
+        冲刺可打出连击；金苹果 +5；冰晶冻结全场；炸弹会伤血并爆炸。你有 <b>3</b> 条命！
       </div>
-      <div class="small">R 重开 · 空格暂停/继续 · 手机左右拖拽 · 点开始会播放BGM</div>
+      <div class="small">R 重开 · 空格暂停/继续 · 手机左右拖拽 · 点开始播放BGM</div>
       <div class="btn" id="start">开始游戏</div>
+    </div>
+
+    <!-- 排行榜 / 结算 -->
+    <div class="card" id="lbCard" style="display:none;text-align:left;max-width:540px">
+      <h3 style="margin:6px 0 10px">🏆 本地排行榜（Top 5）</h3>
+      <ol id="lbList" style="margin:0 0 10px 20px;padding:0"></ol>
+      <div id="lbHint" style="opacity:.85;margin-bottom:10px"></div>
+      <div id="lbInputWrap" style="display:none">
+        <div style="margin:8px 0">你的名字：</div>
+        <input type="text" id="lbName" maxlength="16" placeholder="输入昵称"/>
+        <button class="btn" id="lbSave">保存成绩</button>
+      </div>
+      <div style="margin-top:10px">
+        <button class="btn" id="lbClose">关闭</button>
+      </div>
     </div>
   </div>
 
@@ -77,42 +96,59 @@ const dashFill = document.getElementById('dashFill');
 const shieldFill = document.getElementById('shieldFill');
 const comboEl = document.getElementById('comboEl');
 const tipEl = document.getElementById('tip');
+const bannerEl = document.getElementById('banner');
+const lbBtn = document.getElementById('lbBtn');
+const menuCard = document.getElementById('menuCard');
+const lbCard = document.getElementById('lbCard');
+const lbList = document.getElementById('lbList');
+const lbHint = document.getElementById('lbHint');
+const lbInputWrap = document.getElementById('lbInputWrap');
+const lbName = document.getElementById('lbName');
+const lbSave = document.getElementById('lbSave');
+const lbClose = document.getElementById('lbClose');
 
 let keys = new Set();
 let pointerX = null;
 let state='menu'; // menu | play | pause | dead
-let score=0, time=0, spawnTimer=0, powerTimer=0, goldTimer=0;
-let best = Number(localStorage.getItem('dino_highscore_v4')||0);
+let score=0, time=0, spawnTimer=0, powerTimer=0, goldTimer=0, bombTimer=0, iceTimer=0;
+let best = Number(localStorage.getItem('dino_highscore_v5')||0);
 bestEl.textContent = best;
 
 let lives = 3;
-let invincible = 0; // 被击中后的短暂无敌
-let blink = 0;      // 眨眼计时器
+let invincible = 0; // 被击中后的无敌
+let blink = 0;      // 眨眼
 
 // 冲刺 & 护盾
-let dashing = 0;             // 冲刺剩余秒
+let dashing = 0;
 const DASH_DURATION = 0.35;
-let dashCooldown = 0;        // 冷却剩余秒（0 可用）
+let dashCooldown = 0;
 const DASH_COOLDOWN = 3.0;
 
-let shield = 0;              // 护盾剩余秒（>0 有效）
+let shield = 0;
 const SHIELD_GAIN = 5.0;
 
 // 连击
-let combo = 0;               // 当前连击数
-let comboTimer = 0;          // 连击计时器
-const COMBO_WINDOW = 1.2;    // 连击窗口（秒）
+let combo = 0, comboTimer = 0;
+const COMBO_WINDOW = 1.2;
 
 // 天气/昼夜
-let rainy = Math.random() < 0.25; // 25% 概率下雨
+let rainy = Math.random() < 0.25;
 let raindrops = [];
 for(let i=0;i<100;i++) raindrops.push({x:Math.random()*W, y:Math.random()*H, v: 6+Math.random()*8});
 
+// 关卡
+let level = 1, levelClock = 0, levelRule = 'Normal';
+const LEVEL_LEN = 30; // 秒
+const RULES = ['Gold Rush','Bomb Storm','Ice Age','Heavy Rain','Reverse Controls','Speed Up'];
+
+let reverseControls = false;
+let freezeAll = 0; // 冰冻剩余秒（对所有水果）
+
 // 实体
-let fruits=[], powers=[], golds=[], particles=[];
+let fruits=[], powers=[], golds=[], bombs=[], particles=[];
 const rnd=(a,b)=>Math.random()*(b-a)+a;
 
-// 音频（纯代码合成）
+// 音频
 let audioCtx = null, masterGain = null, bgmTimer = null, muted=false;
 function initAudio() {
   if (audioCtx) return;
@@ -142,7 +178,6 @@ function startBGM() {
   bgmTimer = setInterval(()=>{
     const root = scale[[0,2,4,5][Math.floor(i/4)%4]];
     play(root/2, beat*0.9, 'triangle', 0.12);
-    // 根据连击追加一个小高音
     let bonus = combo>0 ? Math.min(6, Math.floor(combo/3)) : 0;
     const melody = [0,2,4,5,4,2,0,2, 4,5,7,5,4,2,0, -1,0,2,4,5,4,2,0, 2,4,5,7,9,7,5,4];
     const note = scale[(melody[i%melody.length]+8+bonus)%8] || root;
@@ -159,107 +194,54 @@ function sfxShield(){ tone(660,0.16,'triangle',0.22); tone(990,0.12,'sine',0.18)
 function sfxDash(){ tone(520,0.12,'sawtooth',0.22); tone(740,0.10,'square',0.12); }
 function sfxCombo(k){ tone(900+60*k,0.09,'square',0.22); }
 function sfxGold(){ tone(880,0.08,'triangle',0.22); tone(1320,0.12,'sine',0.22); tone(1760,0.14,'sine',0.18); }
+function sfxIce(){ tone(520,0.16,'triangle',0.2); tone(380,0.22,'sine',0.12); }
+function sfxBomb(){ tone(160,0.18,'square',0.24); tone(90,0.24,'sawtooth',0.22); }
 
 // 生命显示
-function renderLives(){
-  let hearts=''; for(let i=0;i<lives;i++) hearts+='❤️';
-  livesEl.textContent = `· 生命：${hearts||'—'}`;
-}
+function renderLives(){ let hearts=''; for(let i=0;i<lives;i++) hearts+='❤️'; livesEl.textContent = `· 生命：${hearts||'—'}`; }
 
-// 小恐龙（绿背白肚皮、眨眼）
+// 恐龙
 const dino = { x: W/2, y: H-110, w: 54, h: 32, speed: 4.6, vx:0 };
 function drawDino(x,y, flashing=false){
   // 影子
-  c.save();
-  c.globalAlpha = .25;
-  c.fillStyle = '#000';
-  c.beginPath();
-  c.ellipse(x, y+18, 28, 8, 0, 0, Math.PI*2);
-  c.fill();
-  c.restore();
+  c.save(); c.globalAlpha=.25; c.fillStyle='#000';
+  c.beginPath(); c.ellipse(x, y+18, 28, 8, 0, 0, Math.PI*2); c.fill(); c.restore();
 
   c.save(); c.translate(x,y);
   if ((flashing || dashing>0) && Math.floor(perfNow*20)%2===0) { c.globalAlpha = 0.55; }
-
-  // 护盾环
-  if (shield>0){
-    c.save();
-    c.globalAlpha = 0.35 + 0.15*Math.sin(perfNow*6);
+  if (shield>0){ // 护盾环
+    c.save(); c.globalAlpha = 0.35 + 0.15*Math.sin(perfNow*6);
     c.strokeStyle = '#7dffa5'; c.lineWidth = 4;
-    c.beginPath(); c.arc(0,-2, 40 + 2*Math.sin(perfNow*4), 0, Math.PI*2); c.stroke();
-    c.restore();
+    c.beginPath(); c.arc(0,-2, 40 + 2*Math.sin(perfNow*4), 0, Math.PI*2); c.stroke(); c.restore();
   }
-
-  // 身体（绿背）
+  // 身体
   c.fillStyle='#3ecf6b'; roundRect(c,-32,-18,68,32,12,true);
-  // 白肚皮
-  c.fillStyle='#e8fff1'; roundRect(c,-10,-6,40,18,8,true);
-  // 头 & 嘴
-  c.fillStyle='#3ecf6b'; roundRect(c,24,-26,24,20,8,true);
-  c.beginPath(); c.moveTo(48,-18); c.lineTo(62,-14); c.lineTo(48,-10); c.closePath(); c.fill();
-  // 手、尾、脚
-  c.fillStyle='#3ecf6b'; c.fillRect(-6,-4,8,3);
-  c.beginPath(); c.moveTo(-32,-8); c.lineTo(-50,-16); c.lineTo(-32,2); c.closePath(); c.fill();
-  c.fillStyle='#c7f7da'; roundRect(c,-12,12,12,4,3,true); roundRect(c,6,12,12,4,3,true);
-
-  // 眼睛/眨眼
-  c.fillStyle='#0b0c10';
-  const eyeClosed = (blink>0 && blink<0.12);
-  if (eyeClosed){ c.fillRect(40,-17,6,2); }
-  else { c.beginPath(); c.arc(43,-19,2.4,0,Math.PI*2); c.fill(); }
-
+  c.fillStyle='#e8fff1'; roundRect(c,-10,-6,40,18,8,true); // 白肚皮
+  c.fillStyle='#3ecf6b'; roundRect(c,24,-26,24,20,8,true); // 头
+  c.beginPath(); c.moveTo(48,-18); c.lineTo(62,-14); c.lineTo(48,-10); c.closePath(); c.fill(); // 嘴
+  c.fillStyle='#3ecf6b'; c.fillRect(-6,-4,8,3); // 手
+  c.beginPath(); c.moveTo(-32,-8); c.lineTo(-50,-16); c.lineTo(-32,2); c.closePath(); c.fill(); // 尾
+  c.fillStyle='#c7f7da'; roundRect(c,-12,12,12,4,3,true); roundRect(c,6,12,12,4,3,true); // 脚
+  // 眼睛
+  c.fillStyle='#0b0c10'; const eyeClosed=(blink>0 && blink<0.12);
+  if (eyeClosed){ c.fillRect(40,-17,6,2); } else { c.beginPath(); c.arc(43,-19,2.4,0,Math.PI*2); c.fill(); }
   c.restore();
 
   // 冲刺残影
-  if (dashing>0){
-    c.save();
-    c.globalAlpha = 0.14; c.filter = 'blur(1px)';
-    c.translate(x-10*Math.sign(dino.vx||1), y);
-    c.fillStyle='#a9ffd1';
-    roundRect(c,-32,-18,68,32,12,true);
-    c.restore();
-  }
+  if (dashing>0){ c.save(); c.globalAlpha=.14; c.filter='blur(1px)'; c.translate(x-10*Math.sign(dino.vx||1), y); c.fillStyle='#a9ffd1'; roundRect(c,-32,-18,68,32,12,true); c.restore(); }
 }
 
-// 水果
+// 画水果影
+function fruitShadow(b){ c.save(); c.globalAlpha=.25; c.fillStyle='#000'; c.beginPath(); c.ellipse(b.x+b.w/2, b.y+b.h+6, b.w*.45, 6, 0, 0, Math.PI*2); c.fill(); c.restore(); }
+
+// 普通水果
 const FRUIT_TYPES = [
-  {name:'apple', w:[26,34], h:20, color:'#ff6b6b', draw:(b)=>{
-    fruitShadow(b);
-    c.fillStyle=b.color; roundRect(c,b.x,b.y,b.w,b.h,10,true);
-    c.fillStyle='#6ad66a'; c.beginPath(); c.ellipse(b.x+b.w*0.7,b.y-2,5,3,0,0,Math.PI*2); c.fill();
-    c.globalAlpha=.2; c.fillStyle='#fff'; roundRect(c,b.x+4,b.y+3,8,6,3,true); c.globalAlpha=1;
-  }},
-  {name:'banana', w:[30,44], h:12, color:'#ffd166', draw:(b)=>{
-    fruitShadow(b);
-    c.fillStyle=b.color; c.beginPath();
-    c.moveTo(b.x,b.y+b.h/2);
-    c.quadraticCurveTo(b.x+b.w*0.5,b.y-14,b.x+b.w,b.y+b.h/2);
-    c.quadraticCurveTo(b.x+b.w*0.5,b.y+10,b.x,b.y+b.h/2);
-    c.fill();
-  }},
-  {name:'orange', w:[24,30], h:24, color:'#ffa62b', draw:(b)=>{
-    fruitShadow(b);
-    c.fillStyle=b.color; c.beginPath(); c.arc(b.x+b.w/2,b.y+b.h/2,b.w/2,0,Math.PI*2); c.fill();
-    c.fillStyle='#5ec27f'; c.fillRect(b.x+b.w/2-1,b.y-3,2,6);
-  }},
-  {name:'grape', w:[26,32], h:26, color:'#9b5de5', draw:(b)=>{
-    fruitShadow(b);
-    c.fillStyle=b.color; const cx=b.x+b.w/2, cy=b.y+b.h/2, r=b.w*0.18;
-    for(let i=0;i<6;i++){ const row=i>>1, col=i%3-1; c.beginPath(); c.arc(cx+col*r*2, cy+(row-0.5)*r*2, r, 0, Math.PI*2); c.fill(); }
-    c.fillStyle='#6ad66a'; c.fillRect(cx-1,b.y-4,2,6);
-  }},
-  {name:'watermelon', w:[32,46], h:20, color:'#ff5c8a', draw:(b)=>{
-    fruitShadow(b);
-    c.fillStyle=b.color; c.beginPath();
-    c.moveTo(b.x,b.y+b.h); c.lineTo(b.x+b.w,b.y+b.h); c.lineTo(b.x+b.w/2,b.y); c.closePath(); c.fill();
-    c.fillStyle='#2dd38a'; c.fillRect(b.x,b.y+b.h-3,b.w,3);
-    c.fillStyle='#0b0c10'; for(let i=0;i<4;i++){ c.beginPath(); c.arc(b.x+b.w*(i+1)/5, b.y+b.h*0.7, 1.6, 0, Math.PI*2); c.fill(); }
-  }},
+  {name:'apple', w:[26,34], h:20, color:'#ff6b6b', draw:(b)=>{ fruitShadow(b); c.fillStyle=b.color; roundRect(c,b.x,b.y,b.w,b.h,10,true); c.fillStyle='#6ad66a'; c.beginPath(); c.ellipse(b.x+b.w*0.7,b.y-2,5,3,0,0,Math.PI*2); c.fill(); c.globalAlpha=.2; c.fillStyle='#fff'; roundRect(c,b.x+4,b.y+3,8,6,3,true); c.globalAlpha=1; }},
+  {name:'banana', w:[30,44], h:12, color:'#ffd166', draw:(b)=>{ fruitShadow(b); c.fillStyle=b.color; c.beginPath(); c.moveTo(b.x,b.y+b.h/2); c.quadraticCurveTo(b.x+b.w*0.5,b.y-14,b.x+b.w,b.y+b.h/2); c.quadraticCurveTo(b.x+b.w*0.5,b.y+10,b.x,b.y+b.h/2); c.fill(); }},
+  {name:'orange', w:[24,30], h:24, color:'#ffa62b', draw:(b)=>{ fruitShadow(b); c.fillStyle=b.color; c.beginPath(); c.arc(b.x+b.w/2,b.y+b.h/2,b.w/2,0,Math.PI*2); c.fill(); c.fillStyle='#5ec27f'; c.fillRect(b.x+b.w/2-1,b.y-3,2,6); }},
+  {name:'grape', w:[26,32], h:26, color:'#9b5de5', draw:(b)=>{ fruitShadow(b); c.fillStyle=b.color; const cx=b.x+b.w/2, cy=b.y+b.h/2, r=b.w*0.18; for(let i=0;i<6;i++){ const row=i>>1, col=i%3-1; c.beginPath(); c.arc(cx+col*r*2, cy+(row-0.5)*r*2, r, 0, Math.PI*2); c.fill(); } c.fillStyle='#6ad66a'; c.fillRect(cx-1,b.y-4,2,6); }},
+  {name:'watermelon', w:[32,46], h:20, color:'#ff5c8a', draw:(b)=>{ fruitShadow(b); c.fillStyle=b.color; c.beginPath(); c.moveTo(b.x,b.y+b.h); c.lineTo(b.x+b.w,b.y+b.h); c.lineTo(b.x+b.w/2,b.y); c.closePath(); c.fill(); c.fillStyle='#2dd38a'; c.fillRect(b.x,b.y+b.h-3,b.w,3); c.fillStyle='#0b0c10'; for(let i=0;i<4;i++){ c.beginPath(); c.arc(b.x+b.w*(i+1)/5, b.y+b.h*0.7, 1.6, 0, Math.PI*2); c.fill(); } }},
 ];
-function fruitShadow(b){
-  c.save(); c.globalAlpha=.25; c.fillStyle='#000';
-  c.beginPath(); c.ellipse(b.x+b.w/2, b.y+b.h+6, b.w*.45, 6, 0, 0, Math.PI*2); c.fill(); c.restore();
-}
 
 // 金苹果
 function drawGold(g){
@@ -268,216 +250,72 @@ function drawGold(g){
   grd.addColorStop(0,'#fff7a1'); grd.addColorStop(1,'#f2c94c');
   c.fillStyle=grd; roundRect(c,g.x,g.y,g.w,g.h,10,true);
   c.fillStyle='#ffe066'; c.beginPath(); c.ellipse(g.x+g.w*0.7,g.y-2,5,3,0,0,Math.PI*2); c.fill();
-  // 光晕
   c.save(); c.globalAlpha=.18; c.beginPath(); c.arc(g.x+g.w/2,g.y+g.h/2,g.w,0,Math.PI*2); c.fillStyle='#ffeb99'; c.fill(); c.restore();
 }
 
-// 道具：护盾
-function drawShieldItem(b){
-  c.save(); c.translate(b.x+b.w/2, b.y+b.h/2); c.rotate(b.ang);
-  const r=b.w/2;
-  c.globalAlpha = 0.15; c.beginPath(); c.arc(0,0,r+6,0,Math.PI*2); c.fillStyle='#7dffa5'; c.fill();
-  c.globalAlpha = 1; c.beginPath();
-  for(let i=0;i<6;i++){ const a=i*Math.PI/3; const px=Math.cos(a)*r, py=Math.sin(a)*r; i?c.lineTo(px,py):c.moveTo(px,py); }
-  c.closePath(); c.fillStyle='#43f58f'; c.fill(); c.restore();
+// 冰晶（可吃）
+function drawIce(p){
+  c.save(); c.translate(p.x+p.w/2,p.y+p.h/2); c.rotate(p.ang);
+  const r=p.w/2;
+  const grd=c.createRadialGradient(0,0,0,0,0,r);
+  grd.addColorStop(0,'#b9ecff'); grd.addColorStop(1,'#5bc0ff');
+  c.fillStyle=grd;
+  c.beginPath(); for(let i=0;i<6;i++){ const a=i*Math.PI/3; const px=Math.cos(a)*r, py=Math.sin(a)*r; i?c.lineTo(px,py):c.moveTo(px,py); } c.closePath(); c.fill();
+  c.restore();
+}
+
+// 炸弹（危险）
+function drawBomb(b){
+  fruitShadow({x:b.x,y:b.y,w:b.w,h:b.h});
+  c.save(); c.translate(b.x+b.w/2,b.y+b.h/2); c.rotate(b.ang);
+  c.fillStyle='#111'; c.beginPath(); c.arc(0,0,b.w*0.45,0,Math.PI*2); c.fill();
+  // 引线
+  c.strokeStyle='#444'; c.beginPath(); c.moveTo(0,-b.w*0.45); c.quadraticCurveTo(6,-b.w*0.7,10,-b.w*0.9); c.stroke();
+  // 火花
+  c.fillStyle='#ffcf5a'; c.globalAlpha=.8; c.beginPath(); c.arc(12,-b.w*0.95,3+Math.sin(perfNow*20),0,Math.PI*2); c.fill();
+  c.restore();
 }
 
 // 生成
 function spawnFruit() {
   const t = FRUIT_TYPES[Math.floor(rnd(0, FRUIT_TYPES.length))];
-  const w = rnd(t.w[0], t.w[1]);
-  const h = t.h;
-  const x = rnd(6, W - w - 6);
-  const y = -30;
-  const vy = rnd(2.4, 4.0) + Math.min(time/28, 3.6); // 随时间加速更明显
+  const w = rnd(t.w[0], t.w[1]), h = t.h;
+  const x = rnd(6, W - w - 6), y = -30;
+  let baseVy = rnd(2.3, 3.8) + Math.min(time/28, 3.4);
+  if (rainy || levelRule==='Heavy Rain') baseVy += 0.8;
+  if (freezeAll>0) baseVy *= 0.2;
+  const vy = baseVy;
   const rot = rnd(-0.05,0.05);
-  fruits.push({type:t,x,y,w,h,vy,rot,color:t.color, ang:0});
+  fruits.push({type:t,x,y,w,h,vy,rot,ang:0,color:t.color});
 }
-function spawnPower(){
-  const w = 26, h = 26;
-  const x = rnd(10, W-10-w), y = -30;
-  const vy = rnd(2.0,3.2) + Math.min(time/35, 2.2);
+function spawnShield(){
+  const w = 26, h = 26, x = rnd(10, W-10-w), y = -30;
+  const vy = (freezeAll>0?0.8:1) * (rnd(2.0,3.2) + Math.min(time/35, 2.2));
   const rot = rnd(-0.06,0.06);
   powers.push({kind:'shield', x,y,w,h,vy,rot,ang:0});
 }
+function spawnIce(){
+  const w = 28, h = 28, x = rnd(10, W-10-w), y = -30;
+  const vy = (freezeAll>0?0.8:1) * (rnd(2.0,3.0) + Math.min(time/40, 2.0));
+  const rot = rnd(-0.05,0.05);
+  powers.push({kind:'ice', x,y,w,h,vy,rot,ang:0});
+}
 function spawnGold(){
   const w=30, h=22, x=rnd(10,W-10-w), y=-30;
-  const vy = rnd(2.2,3.4) + Math.min(time/30, 2.6);
+  let vy = rnd(2.5,3.8) + Math.min(time/30, 2.6); // 提升下落速度
+  if (freezeAll>0) vy *= 0.2;
   golds.push({x,y,w,h,vy,ang:rnd(-0.04,0.04)});
 }
-
-function reset(){
-  dino.x=W/2; dino.vx=0;
-  fruits.length=0; powers.length=0; golds.length=0; particles.length=0;
-  spawnTimer=0; powerTimer= rnd(2.2,3.6); goldTimer = rnd(6,9);
-  score=0; time=0; lives = 3; invincible = 0; blink = 0;
-  dashing=0; dashCooldown=0; shield=0; combo=0; comboTimer=0;
-  scoreEl.textContent='0'; renderLives();
-  dashFill.style.width = '100%'; shieldFill.style.width='0%';
-  rainy = Math.random() < 0.25;
-  tipEl.textContent = rainy ? '🌧 天气：小雨' : '☀️ 天气：晴';
-  comboEl.textContent = '';
+function spawnBomb(){
+  const w=26, h=26, x=rnd(10,W-10-w), y=-30;
+  let vy = rnd(2.6,4.2) + Math.min(time/28, 3.0);
+  if (freezeAll>0) vy *= 0.2;
+  bombs.push({x,y,w,h,vy,ang:rnd(-0.06,0.06)});
 }
 
-function update(dt){
-  time+=dt;
-  if (invincible>0) invincible = Math.max(0, invincible - dt);
-  if (dashing>0) dashing = Math.max(0, dashing - dt);
-  if (dashCooldown>0) dashCooldown = Math.max(0, dashCooldown - dt);
-  if (shield>0) shield = Math.max(0, shield - dt);
-
-  // 眨眼
-  blink -= dt; if (blink<=-rnd(2.5,4)) blink = 0.18;
-
-  // 连击计时
-  if (combo>0){ comboTimer -= dt; if (comboTimer<=0){ combo=0; comboEl.textContent=''; } }
-
-  // 控制
-  let move=0;
-  if (keys.has('ArrowLeft')||keys.has('a')) move-=1;
-  if (keys.has('ArrowRight')||keys.has('d')) move+=1;
-  if (pointerX!=null){
-    const dir=Math.sign(pointerX - dino.x);
-    move = Math.abs(pointerX-dino.x)<4 ? 0 : dir;
-  }
-  // 冲刺触发
-  if ((keys.has('Shift') || keys.has('ShiftLeft') || keys.has('ShiftRight')) && dashing<=0 && dashCooldown<=0){
-    dashing = DASH_DURATION; dashCooldown = DASH_COOLDOWN; sfxDash();
-  }
-  const speedMul = dashing>0 ? 2.05 : 1.0;
-  dino.vx = move * dino.speed * speedMul;
-  dino.x += dino.vx;
-  dino.x = Math.max(40, Math.min(W-40, dino.x));
-
-  // 生成掉落物（难度递增）
-  spawnTimer -= dt;
-  const interval = Math.max(0.18, 0.9 - time*0.02);
-  if (spawnTimer<=0){ spawnFruit(); spawnTimer = interval; }
-
-  // 道具
-  powerTimer -= dt; if (powerTimer<=0){ if (Math.random()<0.45) spawnPower(); powerTimer = rnd(2.2,3.6); }
-  goldTimer  -= dt; if (goldTimer<=0){ if (Math.random()<0.55) spawnGold(); goldTimer = rnd(6,9); }
-
-  // 更新坠落物
-  fruits.forEach(b=>{ b.y+=b.vy; b.ang=(b.ang||0)+(b.rot||0); });
-  powers.forEach(p=>{ p.y+=p.vy; p.ang=(p.ang||0)+(p.rot||0); });
-  golds.forEach(g=>{ g.y+=g.vy; g.ang+=0.02; });
-
-  // 移除越界 + 计分（逃过水果得分）
-  const before = fruits.length;
-  fruits = fruits.filter(b=> b.y <= H+40 );
-  const removed = before - fruits.length;
-  if (removed>0){
-    addScore(removed);
-  }
-  powers = powers.filter(p=> p.y <= H+40);
-  golds = golds.filter(g=> g.y <= H+40);
-
-  // 吃到护盾
-  for (let i=powers.length-1;i>=0;i--){
-    const p = powers[i];
-    if (hitBox(dino.x,dino.y,dino.w,dino.h, p.x+p.w/2,p.y+p.h/2,p.w,p.h,0.8)){
-      shield += SHIELD_GAIN; sfxShield(); splash(p.x+p.w/2,p.y+p.h/2,'#7dffa5'); powers.splice(i,1);
-    }
-  }
-
-  // 吃到金苹果
-  for (let i=golds.length-1;i>=0;i--){
-    const g = golds[i];
-    if (hitBox(dino.x,dino.y,dino.w,dino.h, g.x+g.w/2,g.y+g.h/2,g.w,g.h,0.85)){
-      addScore(5,true); sfxGold(); splash(g.x+g.w/2,g.y+g.h/2,'#ffd166'); golds.splice(i,1);
-    }
-  }
-
-  // 冲刺击碎水果：得分+连击
-  if (dashing>0){
-    for (let i=fruits.length-1;i>=0;i--){
-      const b = fruits[i];
-      const bx=b.x+b.w/2, by=b.y+b.h/2;
-      if (hitBox(dino.x,dino.y,dino.w,dino.h, bx,by,b.w,b.h,0.92)){
-        fruits.splice(i,1);
-        combo += 1; comboTimer = COMBO_WINDOW; sfxCombo(combo);
-        comboEl.textContent = `COMBO ×${combo}`;
-        floatText(bx, by, `+${1*combo}`, '#aaf');
-        addScore(1*combo);
-        splash(bx,by,'#9ad');
-      }
-    }
-  }
-
-  // 与水果碰撞（非护盾/非无敌/非冲刺）
-  if (invincible<=0 && shield<=0 && dashing<=0){
-    for (let b of fruits){
-      const bx=b.x+b.w/2, by=b.y+b.h/2;
-      if (hitBox(dino.x,dino.y,dino.w,dino.h, bx,by,b.w,b.h,0.78)){
-        onHit(); break;
-      }
-    }
-  }
-
-  // HUD 进度条
-  dashFill.style.width = `${(1 - dashCooldown/DASH_COOLDOWN)*100}%`;
-  shieldFill.style.width = `${Math.min(1, shield/SHIELD_GAIN)*100}%`;
-}
-
-function addScore(n, bounce=false){
-  score += n; scoreEl.textContent = score;
-  if (bounce){ scoreEl.style.transform='scale(1.18)'; setTimeout(()=>scoreEl.style.transform='scale(1)',120); }
-  else { scoreEl.style.transform='scale(1.08)'; setTimeout(()=>scoreEl.style.transform='scale(1)',80); }
-  sfxScore();
-  if (score > best){ best = score; bestEl.textContent = best; localStorage.setItem('dino_highscore_v4', best); sfxBest(); }
-}
-
-function draw(){
-  // 背景（日夜+视差）
-  drawParallaxBackground();
-
-  // 雨
-  if (rainy) drawRain();
-
-  // 粒子
-  for (let i=particles.length-1;i>=0;i--){
-    const p=particles[i]; p.x+=p.vx; p.y+=p.vy; p.vy+=0.1; p.life-=0.016;
-    if (p.life<=0) particles.splice(i,1);
-  }
-  particles.forEach(p=>{
-    c.save(); c.globalAlpha=Math.max(0,p.life); c.fillStyle=p.col; c.beginPath();
-    c.arc(p.x,p.y,p.r,0,Math.PI*2); c.fill(); c.restore();
-  });
-
-  // 恐龙
-  drawDino(dino.x, dino.y, invincible>0);
-
-  // 水果
-  fruits.forEach(b=>{
-    c.save(); c.translate(b.x+b.w/2, b.y+b.h/2); c.rotate(b.ang||0); c.translate(-b.w/2, -b.h/2);
-    b.type.draw({x:0,y:0,w:b.w,h:b.h,color:b.color}); c.restore();
-  });
-
-  // 道具
-  powers.forEach(p=>{ drawShieldItem(p); });
-
-  // 金苹果
-  golds.forEach(g=>{
-    c.save(); c.translate(g.x+g.w/2,g.y+g.h/2); c.rotate(g.ang); c.translate(-g.w/2,-g.h/2);
-    drawGold(g); c.restore();
-  });
-
-  // 难度条
-  c.globalAlpha=.3; c.fillStyle='#fff'; c.fillRect(10, H-14, Math.min(1, time/30)*(W-20), 4); c.globalAlpha=1;
-
-  // 飘字
-  floatTexts.forEach(ft=>{
-    ft.y -= 0.6; ft.life -= 0.02; c.save(); c.globalAlpha=Math.max(0,ft.life);
-    c.fillStyle=ft.col; c.font='bold 18px system-ui'; c.fillText(ft.txt, ft.x, ft.y); c.restore();
-  });
-  floatTexts = floatTexts.filter(ft=>ft.life>0);
-}
-
+// 背景（日夜+视差）
 function drawParallaxBackground(){
-  // t 昼夜：0~1（0=清晨，0.5=夜，1=回到清晨）
   const t = (Math.sin(perfNow/12)+1)/2;
-  // 天空渐变
   const top = lerpColor([22,28,58],[4,8,20], t);
   const bot = lerpColor([120,170,255],[30,40,70], t);
   const grd = c.createLinearGradient(0,0,0,H);
@@ -485,108 +323,51 @@ function drawParallaxBackground(){
   grd.addColorStop(1, `rgb(${bot[0]},${bot[1]},${bot[2]})`);
   c.fillStyle = grd; c.fillRect(0,0,W,H);
 
-  // 远山（层1/层2）
-  c.globalAlpha = .55; c.fillStyle = `rgba(60,80,120,.9)`;
-  drawHills(0.15, 40);
-  c.globalAlpha = .75; c.fillStyle = `rgba(40,60,100,.95)`;
-  drawHills(0.25, 70);
+  c.globalAlpha = .55; c.fillStyle = `rgba(60,80,120,.9)`; drawHills(0.15, 40);
+  c.globalAlpha = .75; c.fillStyle = `rgba(40,60,100,.95)`; drawHills(0.25, 70);
   c.globalAlpha = 1;
 
-  // 云（漂移）
-  c.fillStyle='rgba(255,255,255,.25)';
-  for(let i=0;i<6;i++){
-    const x = (i*180 + (perfNow*20)) % (W+220) - 110;
-    const y = 80 + (i%3)*30;
-    drawCloud(x,y, 70+ i*6);
-  }
-
-  // 草地地平线
+  c.fillStyle='rgba(255,255,255,.25)'; for(let i=0;i<6;i++){ const x=(i*180+(perfNow*20))%(W+220)-110; const y=80+(i%3)*30; drawCloud(x,y, 70+i*6); }
   c.fillStyle='#1b2e1e'; c.fillRect(0, H-80, W, 80);
   c.fillStyle='#284a2e'; c.fillRect(0, H-64, W, 64);
-  // 小草
-  c.globalAlpha=.25;
-  for(let x=0;x<W;x+=14){ c.fillRect(x, H-64, 2, 8+3*Math.sin((x+perfNow*40)/20)); }
-  c.globalAlpha=1;
+  c.globalAlpha=.25; for(let x=0;x<W;x+=14){ c.fillRect(x, H-64, 2, 8+3*Math.sin((x+perfNow*40)/20)); } c.globalAlpha=1;
 }
-
 function drawHills(speed, baseY){
   c.beginPath();
-  for(let x=0;x<=W;x+=10){
-    const y = H - 120 - baseY - 18*Math.sin((x*0.01)+(perfNow*speed));
-    x===0?c.moveTo(x,y):c.lineTo(x,y);
-  }
+  for(let x=0;x<=W;x+=10){ const y = H - 120 - baseY - 18*Math.sin((x*0.01)+(perfNow*speed)); x===0?c.moveTo(x,y):c.lineTo(x,y); }
   c.lineTo(W,H); c.lineTo(0,H); c.closePath(); c.fill();
 }
-function drawCloud(x,y,w){
-  c.beginPath(); c.arc(x,y,w*0.4,0,Math.PI*2);
-  c.arc(x+w*0.35,y+6,w*0.28,0,Math.PI*2);
-  c.arc(x-w*0.35,y+10,w*0.28,0,Math.PI*2);
-  c.fill();
-}
-
+function drawCloud(x,y,w){ c.beginPath(); c.arc(x,y,w*0.4,0,Math.PI*2); c.arc(x+w*0.35,y+6,w*0.28,0,Math.PI*2); c.arc(x-w*0.35,y+10,w*0.28,0,Math.PI*2); c.fill(); }
 function drawRain(){
   c.save(); c.strokeStyle='rgba(200,220,255,.25)'; c.lineWidth=1;
-  for(let r of raindrops){
-    c.beginPath(); c.moveTo(r.x, r.y); c.lineTo(r.x-3, r.y+10); c.stroke();
-    r.x -= 1.2; r.y += r.v;
-    if (r.y > H) { r.y = -10; r.x = Math.random()*W; }
-  }
+  for(let r of raindrops){ c.beginPath(); c.moveTo(r.x, r.y); c.lineTo(r.x-3, r.y+10); c.stroke(); r.x-=1.2; r.y+=r.v; if (r.y>H){ r.y=-10; r.x=Math.random()*W; } }
   c.restore();
 }
 
-function hitBox(px,py,pw,ph, bx,by,bw,bh, k=1){
-  return Math.abs(px - bx) < (pw/2 + bw/2)*k &&
-         Math.abs(py - by) < (ph/2 + bh/2)*k;
-}
-
-function onHit(){
-  lives -= 1; renderLives(); sfxHit();
-  invincible = 1.2; combo=0; comboEl.textContent='';
-  // 清屏，避免连击伤害
-  fruits = fruits.filter(b=> b.y < dino.y - 50);
-  splash(dino.x, dino.y-8, '#ff6b6b', 22);
-  if (lives<=0){ gameOver(); }
-}
-
-function gameOver(){
-  state='dead';
-  stopBGM();
-  const isBest = score>=best;
-  if (isBest){ best = score; bestEl.textContent = best; localStorage.setItem('dino_highscore_v4', best); }
-  msgEl.innerHTML = `游戏结束！分数：<b>${score}</b> · 最高分：<b>${best}</b>（R重开）`;
-  overlay.classList.add('show');
-}
-
-function startGame(){
-  reset();
-  state='play';
-  overlay.classList.remove('show');
-  if (!audioCtx) initAudio();
-  if (audioCtx.state==='suspended') audioCtx.resume();
-  if (!muted) startBGM();
-}
-
-// 粒子/飘字
-function splash(x,y,col='#9ad', n=14){
-  for(let i=0;i<n;i++){
-    particles.push({x,y, vx:rnd(-2,2), vy:rnd(-3,0), r:rnd(1,2.6), col, life:1});
-  }
-}
-let floatTexts=[];
-function floatText(x,y,txt,col='#fff'){ floatTexts.push({x,y,txt,col,life:1}); }
-
 // 工具
-function roundRect(ctx,x,y,w,h,r,fill){
-  const rr=Math.min(r,w/2,h/2);
-  ctx.beginPath();
-  ctx.moveTo(x+rr,y);
-  ctx.arcTo(x+w,y,x+w,y+h,rr);
-  ctx.arcTo(x+w,y+h,x,y+h,rr);
-  ctx.arcTo(x,y+h,x,y,rr);
-  ctx.arcTo(x,y,x+w,y,rr);
-  fill ? ctx.fill() : ctx.stroke();
-}
+function hitBox(px,py,pw,ph, bx,by,bw,bh, k=1){ return Math.abs(px - bx) < (pw/2 + bw/2)*k && Math.abs(py - by) < (ph/2 + bh/2)*k; }
+function roundRect(ctx,x,y,w,h,r,fill){ const rr=Math.min(r,w/2,h/2); ctx.beginPath(); ctx.moveTo(x+rr,y); ctx.arcTo(x+w,y,x+w,y+h,rr); ctx.arcTo(x+w,y+h,x,y+h,rr); ctx.arcTo(x,y+h,x,y,rr); ctx.arcTo(x,y,x+w,y,rr); fill?ctx.fill():ctx.stroke(); }
 function lerpColor(a,b,t){ return [ Math.round(a[0]+(b[0]-a[0])*t), Math.round(a[1]+(b[1]-a[1])*t), Math.round(a[2]+(b[2]-a[2])*t) ]; }
+function splash(x,y,col='#9ad', n=14){ for(let i=0;i<n;i++){ particles.push({x,y, vx:rnd(-2,2), vy:rnd(-3,0), r:rnd(1,2.6), col, life:1}); } }
+let floatTexts=[]; function floatText(x,y,txt,col='#fff'){ floatTexts.push({x,y,txt,col,life:1}); }
+
+// 关卡切换 & 标题
+function setRule(rule){
+  levelRule = rule;
+  reverseControls = (rule==='Reverse Controls');
+  bannerEl.textContent = `LEVEL ${level} · ${rule}`;
+  bannerEl.style.opacity = 1;
+  setTimeout(()=>bannerEl.style.opacity=0, 1600);
+  tipEl.textContent = (rainy||rule==='Heavy Rain') ? '🌧 天气：小雨' : '☀️ 天气：晴';
+}
+
+// 计分
+function addScore(n, bounce=false){
+  score += n; scoreEl.textContent = score;
+  scoreEl.style.transform='scale(1.08)'; setTimeout(()=>scoreEl.style.transform='scale(1)',90);
+  sfxScore();
+  if (score > best){ best = score; bestEl.textContent = best; localStorage.setItem('dino_highscore_v5', best); sfxBest(); }
+}
 
 // 事件
 document.addEventListener('keydown', e=>{
@@ -595,28 +376,17 @@ document.addEventListener('keydown', e=>{
   keys.add(e.key);
 });
 document.addEventListener('keyup', e=>keys.delete(e.key));
-
 const touch = (x)=>{ const rect=canvas.getBoundingClientRect(); pointerX = x - rect.left; };
 canvas.addEventListener('pointerdown', e=>touch(e.clientX));
 canvas.addEventListener('pointermove', e=>{ if (e.buttons) touch(e.clientX); });
 window.addEventListener('pointerup', ()=>{ pointerX=null; });
 
-startBtn.addEventListener('click', ()=>{
-  initAudio(); audioCtx.resume(); startGame();
-});
+startBtn.addEventListener('click', ()=>{ initAudio(); audioCtx.resume(); startGame(); });
 
-function togglePause(){
-  if (state==='play'){ state='pause'; stopBGM(); overlay.classList.add('show'); msgEl.textContent='已暂停（空格继续）'; }
-  else if (state==='pause'){ state='play'; overlay.classList.remove('show'); if(!muted) startBGM(); }
-}
-pauseBtn.addEventListener('click', togglePause);
-
-muteBtn.addEventListener('click', ()=>{
-  muted = !muted;
-  muteBtn.textContent = muted ? '🔇' : '🔊';
-  if (muted) { stopBGM(); }
-  else { if (!audioCtx) initAudio(); audioCtx.resume(); startBGM(); }
-});
+// 排行榜 UI
+lbBtn.addEventListener('click', ()=>{ showLeaderboard(false); });
+lbClose.addEventListener('click', ()=>{ menuCard.style.display=''; lbCard.style.display='none'; if (state!=='menu') overlay.classList.remove('show'); });
+lbSave.addEventListener('click', ()=>{ const name=(lbName.value||'Player').trim().slice(0,16); saveToLeaderboard(name, score); showLeaderboard(false); lbInputWrap.style.display='none'; });
 
 // 主循环
 let perfNow = 0;
@@ -632,6 +402,217 @@ renderLives();
 overlay.classList.add('show');
 draw();
 requestAnimationFrame(loop);
+
+// =================== 核心 Update/Draw ===================
+function reset(){
+  dino.x=W/2; dino.vx=0;
+  fruits.length=0; powers.length=0; golds.length=0; bombs.length=0; particles.length=0;
+  spawnTimer=0; powerTimer= rnd(2.0,3.4); goldTimer = rnd(4.5,7.0); bombTimer=rnd(2.5,4.0); iceTimer=rnd(4.0,7.0);
+  score=0; time=0; lives = 3; invincible = 0; blink = 0;
+  dashing=0; dashCooldown=0; shield=0; combo=0; comboTimer=0;
+  scoreEl.textContent='0'; renderLives();
+  dashFill.style.width = '100%'; shieldFill.style.width='0%';
+  rainy = Math.random() < 0.25;
+  level=1; levelClock=0; setRule('Normal');
+  freezeAll=0;
+  comboEl.textContent = '';
+}
+
+function startGame(){ reset(); state='play'; menuCard.style.display=''; lbCard.style.display='none'; overlay.classList.remove('show'); if (!audioCtx) initAudio(); if (audioCtx.state==='suspended') audioCtx.resume(); if (!muted) startBGM(); }
+function togglePause(){ if (state==='play'){ state='pause'; stopBGM(); overlay.classList.add('show'); msgEl.textContent='已暂停（空格继续）'; } else if (state==='pause'){ state='play'; overlay.classList.remove('show'); if(!muted) startBGM(); } }
+
+function update(dt){
+  time+=dt; levelClock+=dt;
+  if (invincible>0) invincible = Math.max(0, invincible - dt);
+  if (dashing>0) dashing = Math.max(0, dashing - dt);
+  if (dashCooldown>0) dashCooldown = Math.max(0, dashCooldown - dt);
+  if (shield>0) shield = Math.max(0, shield - dt);
+  if (freezeAll>0) freezeAll = Math.max(0, freezeAll - dt);
+  blink -= dt; if (blink<=-rnd(2.5,4)) blink = 0.18;
+  if (combo>0){ comboTimer -= dt; if (comboTimer<=0){ combo=0; comboEl.textContent=''; } }
+
+  // 关卡切换
+  if (levelClock >= LEVEL_LEN){
+    level++; levelClock=0;
+    const rule = RULES[(level-2) % RULES.length]; // 1级是Normal，从2级开始轮换
+    setRule(rule);
+  }
+
+  // 控制
+  let move=0;
+  if (keys.has('ArrowLeft')||keys.has('a')) move -= 1;
+  if (keys.has('ArrowRight')||keys.has('d')) move += 1;
+  if (reverseControls){ move = -move; }
+  if (pointerX!=null){ // 触控不反向
+    const dir=Math.sign(pointerX - dino.x);
+    move = Math.abs(pointerX-dino.x)<4 ? 0 : dir;
+  }
+  if ((keys.has('Shift')||keys.has('ShiftLeft')||keys.has('ShiftRight')) && dashing<=0 && dashCooldown<=0){ dashing=DASH_DURATION; dashCooldown=DASH_COOLDOWN; sfxDash(); }
+  const spdMul = dashing>0 ? 2.05 : 1.0;
+  dino.vx = move * dino.speed * spdMul; dino.x += dino.vx; dino.x = Math.max(40, Math.min(W-40, dino.x));
+
+  // 掉落节奏（随关卡加快）
+  spawnTimer -= dt;
+  let interval = Math.max(0.18, 0.9 - time*0.02 - Math.max(0,level-1)*0.02);
+  if (levelRule==='Speed Up') interval *= 0.8;
+  if (spawnTimer<=0){ spawnFruit(); spawnTimer = interval; }
+
+  // 道具/金苹果/炸弹生成（受关卡加权）
+  powerTimer -= dt; goldTimer -= dt; bombTimer -= dt; iceTimer -= dt;
+  if (powerTimer<=0){ if (Math.random()<0.45) spawnShield(); powerTimer = rnd(2.0,3.4); }
+  if (iceTimer<=0 || levelRule==='Ice Age'){ if (Math.random()< (levelRule==='Ice Age'?0.8:0.5) ) spawnIce(); iceTimer = rnd(3.0,5.0); }
+  if (goldTimer<=0 || levelRule==='Gold Rush'){ if (Math.random()< (levelRule==='Gold Rush'?0.9:0.6) ) spawnGold(); goldTimer = rnd(3.2,5.2); }
+  if (bombTimer<=0 || levelRule==='Bomb Storm'){ if (Math.random()< (levelRule==='Bomb Storm'?0.9:0.55) ) spawnBomb(); bombTimer = rnd(2.2,3.8); }
+
+  // 更新
+  const slow = freezeAll>0 ? 0.2 : 1;
+  fruits.forEach(b=>{ b.y += b.vy*slow; b.ang=(b.ang||0)+(b.rot||0); });
+  powers.forEach(p=>{ p.y += p.vy*slow; p.ang=(p.ang||0)+(p.rot||0); });
+  golds.forEach(g=>{ g.y += g.vy*slow; g.ang += 0.02; });
+  bombs.forEach(b=>{ b.y += b.vy*slow; b.ang += 0.03; });
+
+  // 移除越界 + 计分（逃过水果）
+  const before = fruits.length;
+  fruits = fruits.filter(b=> b.y <= H+40 );
+  const removed = before - fruits.length; if (removed>0) addScore(removed);
+  powers = powers.filter(p=> p.y <= H+40);
+  golds = golds.filter(g=> g.y <= H+40);
+  bombs = bombs.filter(b=> b.y <= H+40);
+
+  // 吃道具：护盾/冰晶/金苹果
+  for (let i=powers.length-1;i>=0;i--){
+    const p = powers[i];
+    if (hitBox(dino.x,dino.y,dino.w,dino.h, p.x+p.w/2,p.y+p.h/2,p.w,p.h,0.85)){
+      if (p.kind==='shield'){ shield += SHIELD_GAIN; sfxShield(); splash(p.x+p.w/2,p.y+p.h/2,'#7dffa5'); }
+      if (p.kind==='ice'){ freezeAll = 4.0; sfxIce(); splash(p.x+p.w/2,p.y+p.h/2,'#aee7ff'); }
+      powers.splice(i,1);
+    }
+  }
+  for (let i=golds.length-1;i>=0;i--){
+    const g = golds[i];
+    if (hitBox(dino.x,dino.y,dino.w,dino.h, g.x+g.w/2,g.y+g.h/2,g.w,g.h,0.9)){
+      addScore(5,true); sfxGold(); splash(g.x+g.w/2,g.y+g.h/2,'#ffd166'); golds.splice(i,1);
+    }
+  }
+
+  // 冲刺击碎水果：连击
+  if (dashing>0){
+    for (let i=fruits.length-1;i>=0;i--){
+      const b = fruits[i]; const bx=b.x+b.w/2, by=b.y+b.h/2;
+      if (hitBox(dino.x,dino.y,dino.w,dino.h, bx,by,b.w,b.h,0.92)){
+        fruits.splice(i,1);
+        combo += 1; comboTimer = COMBO_WINDOW; sfxCombo(combo); comboEl.textContent=`COMBO ×${combo}`;
+        floatText(bx, by, `+${1*combo}`, '#aaf'); addScore(1*combo); splash(bx,by,'#9ad');
+      }
+    }
+    // 冲刺碰到炸弹：安全引爆（不掉命）
+    for (let i=bombs.length-1;i>=0;i--){
+      const b = bombs[i]; const bx=b.x+b.w/2, by=b.y+b.h/2;
+      if (hitBox(dino.x,dino.y,dino.w,dino.h, bx,by,b.w,b.h,0.95)){
+        bombs.splice(i,1); sfxBomb(); splash(bx,by,'#ff9b6b',22);
+      }
+    }
+  }
+
+  // 碰炸弹（非护盾非冲刺非无敌）
+  if (invincible<=0 && dashing<=0){
+    for (let i=bombs.length-1;i>=0;i--){
+      const b=bombs[i]; const bx=b.x+b.w/2, by=b.y+b.h/2;
+      if (hitBox(dino.x,dino.y,dino.w,dino.h, bx,by,b.w,b.h,0.85)){
+        bombs.splice(i,1);
+        onHit(); sfxBomb(); splash(bx,by,'#ff6b6b',26);
+        // 爆炸清小范围水果
+        fruits = fruits.filter(f=> Math.hypot((f.x+f.w/2)-bx,(f.y+f.h/2)-by) > 80);
+        break;
+      }
+    }
+  }
+
+  // 与普通水果碰撞（非护盾/非无敌/非冲刺）
+  if (invincible<=0 && shield<=0 && dashing<=0){
+    for (let b of fruits){
+      const bx=b.x+b.w/2, by=b.y+b.h/2;
+      if (hitBox(dino.x,dino.y,dino.w,dino.h, bx,by,b.w,b.h,0.78)){ onHit(); break; }
+    }
+  }
+
+  // HUD
+  dashFill.style.width = `${(1 - dashCooldown/DASH_COOLDOWN)*100}%`;
+  shieldFill.style.width = `${Math.min(1, shield/SHIELD_GAIN)*100}%`;
+}
+
+function draw(){
+  drawParallaxBackground();
+  if (rainy || levelRule==='Heavy Rain') drawRain();
+
+  // 粒子更新绘制
+  for (let i=particles.length-1;i>=0;i--){ const p=particles[i]; p.x+=p.vx; p.y+=p.vy; p.vy+=0.1; p.life-=0.016; if (p.life<=0) particles.splice(i,1); }
+  particles.forEach(p=>{ c.save(); c.globalAlpha=Math.max(0,p.life); c.fillStyle=p.col; c.beginPath(); c.arc(p.x,p.y,p.r,0,Math.PI*2); c.fill(); c.restore(); });
+
+  // 恐龙
+  drawDino(dino.x, dino.y, invincible>0);
+
+  // 水果/道具
+  fruits.forEach(b=>{ c.save(); c.translate(b.x+b.w/2, b.y+b.h/2); c.rotate(b.ang||0); c.translate(-b.w/2, -b.h/2); b.type.draw({x:0,y:0,w:b.w,h:b.h,color:b.color}); c.restore(); });
+  powers.forEach(p=>{ if (p.kind==='shield'){ // 绿六边形
+      c.save(); c.translate(p.x+p.w/2, p.y+p.h/2); c.rotate(p.ang); const r=p.w/2; c.globalAlpha=.15; c.beginPath(); c.arc(0,0,r+6,0,Math.PI*2); c.fillStyle='#7dffa5'; c.fill(); c.globalAlpha=1; c.beginPath(); for(let i=0;i<6;i++){ const a=i*Math.PI/3; const px=Math.cos(a)*r, py=Math.sin(a)*r; i?c.lineTo(px,py):c.moveTo(px,py);} c.closePath(); c.fillStyle='#43f58f'; c.fill(); c.restore();
+    } else { drawIce(p); } });
+  golds.forEach(g=>{ c.save(); c.translate(g.x+g.w/2,g.y+g.h/2); c.rotate(g.ang); c.translate(-g.w/2,-g.h/2); drawGold(g); c.restore(); });
+  bombs.forEach(b=> drawBomb(b));
+
+  // 难度条
+  c.globalAlpha=.3; c.fillStyle='#fff'; c.fillRect(10, H-14, Math.min(1, time/30)*(W-20), 4); c.globalAlpha=1;
+
+  // 飘字
+  floatTexts.forEach(ft=>{ ft.y -= 0.6; ft.life -= 0.02; c.save(); c.globalAlpha=Math.max(0,ft.life); c.fillStyle=ft.col; c.font='bold 18px system-ui'; c.fillText(ft.txt, ft.x, ft.y); c.restore(); });
+  floatTexts = floatTexts.filter(ft=>ft.life>0);
+
+  // 冰冻蓝滤镜
+  if (freezeAll>0){ c.save(); c.fillStyle='rgba(120,180,255,0.10)'; c.fillRect(0,0,W,H); c.restore(); }
+}
+
+// 受击/结束
+function onHit(){
+  if (shield>0){ shield=0; sfxHit(); splash(dino.x, dino.y-8, '#7dffa5', 22); return; }
+  lives -= 1; renderLives(); sfxHit();
+  invincible = 1.2; combo=0; comboEl.textContent='';
+  fruits = fruits.filter(b=> b.y < dino.y - 50);
+  splash(dino.x, dino.y-8, '#ff6b6b', 22);
+  if (lives<=0){ gameOver(); }
+}
+function gameOver(){
+  state='dead'; stopBGM();
+  const isBest = score>=best;
+  if (isBest){ best = score; bestEl.textContent = best; localStorage.setItem('dino_highscore_v5', best); }
+  // 进入排行榜
+  showLeaderboard(true);
+}
+
+// =============== 本地排行榜（Top 5） ===============
+const LB_KEY='dino_lb_top5';
+function loadLeaderboard(){
+  let arr=[]; try{ arr=JSON.parse(localStorage.getItem(LB_KEY)||'[]'); }catch(e){ arr=[]; }
+  return Array.isArray(arr)?arr:[];
+}
+function saveLeaderboard(arr){ localStorage.setItem(LB_KEY, JSON.stringify(arr.slice(0,5))); }
+function formatDate(){ const d=new Date(); const mm=String(d.getMonth()+1).padStart(2,'0'); const dd=String(d.getDate()).padStart(2,'0'); return `${mm}-${dd}`; }
+function showLeaderboard(fromGameOver){
+  const lb=loadLeaderboard();
+  lbList.innerHTML = lb.map((e,i)=>`<li><b>${e.name||'Player'}</b> — ${e.score} 分 <span style="opacity:.7">(${e.date||''})</span></li>`).join('') || '<li>暂无记录</li>';
+  const qualifies = fromGameOver && (lb.length<5 || score>lb[lb.length-1].score);
+  lbHint.textContent = fromGameOver ? `你的分数：${score} 分` : '显示本地前五名成绩';
+  lbInputWrap.style.display = qualifies ? '' : 'none';
+  if (qualifies){ lbName.value=''; setTimeout(()=>lbName.focus(), 50); }
+  menuCard.style.display='none'; lbCard.style.display='';
+  overlay.classList.add('show');
+}
+function saveToLeaderboard(name, scoreVal){
+  const lb=loadLeaderboard();
+  lb.push({name, score:scoreVal, date:formatDate()});
+  lb.sort((a,b)=>b.score-a.score);
+  saveLeaderboard(lb);
+  lbList.innerHTML = lb.map((e,i)=>`<li><b>${e.name||'Player'}</b> — ${e.score} 分 <span style="opacity:.7">(${e.date||''})</span></li>`).join('');
+}
 </script>
 </body>
 </html>
