@@ -665,7 +665,7 @@ function setRule(rule){
   if (rule==='Ice Age') tip('❄️ 冰冻道具高发');
   if (rule==='Bomb Storm') tip('💣 炸弹高发');
   if (rule==='Heavy Rain') tip('🌧 大雨来袭');
-  if (rule==='Speed Up') tip('⏩ 更快更密');
+  if (rule==='Speed Up') tip('⏩ 更快更密集');
   showBanner(`LEVEL ${level} · ${rule}`);
 }
 function tip(t){ tipEl.textContent = t; setTimeout(()=>{ if (tipEl.textContent===t) tipEl.textContent=''; }, 2600); }
