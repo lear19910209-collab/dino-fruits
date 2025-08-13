@@ -32,16 +32,89 @@
   .hint{position:fixed;right:12px;bottom:64px;background:rgba(0,0,0,.55);border:1px solid #2a2f3a;border-radius:10px;padding:8px 10px;font-size:12px;opacity:.95}
   .mission{position:fixed;left:50%;bottom:54px;transform:translateX(-50%);background:rgba(0,0,0,.55);border:1px solid #2a2f3a;border-radius:10px;padding:6px 10px;font-size:12px;opacity:.95}
 
-  /* v8.4: 封面 Banner（使用你的 GitHub 图片直链） */
+  /* 封面 Banner 内生成（不依赖外链） */
 (function(){
   const bg = document.getElementById('coverBg');
-  const BANNER_SRC = 'https://github.com/lear19910209-collab/dino-fruits/blob/main/834B9316-38B9-4A3D-869F-AA0B02492248.png?raw=true';
-  const img = new Image();
-  img.onload  = () => { bg.style.backgroundImage = `url('${BANNER_SRC}')`; };
-  img.onerror = () => { bg.style.background = 'radial-gradient(1200px 700px at 50% -100px,#1a2030,#0f1115)'; };
-  img.src = BANNER_/* 封面全屏 Banner 背景层 */
-#coverBg{position:fixed;inset:0;background:#0b0f17 center/cover no-repeat;z-index:-1;opacity:.9}
-#overlay.show #coverBg{opacity:1}
+  const w = 1600, h = 900;
+  const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+  const g = cv.getContext('2d');
+
+  // 背景渐变
+  const grd = g.createLinearGradient(0,0,0,h);
+  grd.addColorStop(0,'#0f1628');
+  grd.addColorStop(1,'#0a0e16');
+  g.fillStyle = grd; g.fillRect(0,0,w,h);
+
+  // 云
+  function cloud(cx,cy,r){
+    g.fillStyle = 'rgba(255,255,255,0.12)';
+    g.beginPath();
+    g.arc(cx-r*0.6,cy,r*0.7,0,Math.PI*2);
+    g.arc(cx,cy,r,0,Math.PI*2);
+    g.arc(cx+r*0.7,cy+4,r*0.8,0,Math.PI*2);
+    g.fill();
+  }
+  cloud(260,170,80); cloud(520,140,70); cloud(1050,180,90); cloud(1320,150,70);
+
+  // 远山/近山
+  function hills(color,amp,ybase,step,phase){
+    g.fillStyle = color;
+    g.beginPath();
+    for(let x=0;x<=w;x+=step){
+      const y = ybase - amp*Math.sin((x+phase)*0.006) - amp*0.3*Math.sin((x+phase)*0.018);
+      if(x===0) g.moveTo(0,y); else g.lineTo(x,y);
+    }
+    g.lineTo(w,h); g.lineTo(0,h); g.closePath(); g.fill();
+  }
+  hills('rgba(40,60,100,0.95)',28,h*0.62,8,0);
+  hills('rgba(60,80,120,0.90)',18,h*0.68,8,80);
+
+  // 草地
+  g.fillStyle = '#1b2e1e'; g.fillRect(0,h-140,w,140);
+  g.fillStyle = '#284a2e'; g.fillRect(0,h-112,w,112);
+
+  // 装饰：下落的水果&金币
+  function fruit(x,y,kind){
+    if(kind===0){ g.fillStyle='#ff6b6b'; g.fillRect(x,y,36,24); g.fillStyle='#6ad66a'; g.fillRect(x+26,y-8,6,8); }
+    else if(kind===1){ g.fillStyle='#ffd166'; g.fillRect(x,y+6,44,6); g.fillRect(x+4,y,36,6); }
+    else if(kind===2){ g.fillStyle='#ffa62b'; g.beginPath(); g.arc(x+16,y+16,16,0,Math.PI*2); g.fill(); }
+    else if(kind===3){ g.fillStyle='#9b5de5'; for(let i=0;i<6;i++){ const row=i>>1,col=i%3-1; g.beginPath(); g.arc(x+16+col*8,y+16+(row-0.5)*8,7,0,Math.PI*2); g.fill(); } }
+    else if(kind===4){ g.fillStyle='#f4d35e'; g.beginPath(); g.arc(x+16,y+16,16,0,Math.PI*2); g.fill();
+                       g.fillStyle='#ffe28a'; g.beginPath(); g.arc(x+16,y+16,12,0,Math.PI*2); g.fill(); }
+  }
+  for(let i=0;i<28;i++){
+    const kind = (i%5), x = (i*53)%w + (i%3)*11, y = 80 + (i*27)%420;
+    fruit(x,y,kind);
+  }
+
+  // 小恐龙像素剪影
+  function pixRect(x,y,w,h,c){ g.fillStyle=c; g.fillRect(x,y,w,h); }
+  const dx = w*0.58, dy = h*0.62, s=12;
+  const body='#3ecf6b', belly='#e8fff1';
+  g.fillStyle='rgba(0,0,0,0.26)'; g.beginPath(); g.ellipse(dx-10,dy+90,140,26,0,0,Math.PI*2); g.fill();
+  pixRect(dx-16*s,dy-6*s, 19*s, 6*s, body);     // 躯干
+  pixRect(dx+3*s, dy-8*s,  7*s, 5*s, body);     // 头
+  pixRect(dx+10*s,dy-6*s,  4*s, 3*s, body);     // 嘴
+  pixRect(dx-2*s, dy-2*s,  7*s, 2*s, belly);    // 肚皮
+  pixRect(dx-12*s,dy+2*s,  4*s, 2*s, belly);    // 腿1
+  pixRect(dx-5*s, dy+2*s,  4*s, 2*s, belly);    // 腿2
+  pixRect(dx-16*s,dy-3*s,  6*s, 2*s, body);     // 尾根
+  pixRect(dx-20*s,dy-5*s,  5*s, 2*s, body);     // 尾巴
+  pixRect(dx+8*s,dy-7*s,  1.6*s, 1.6*s, '#0b0c10'); // 眼睛
+
+  // 标题
+  g.font = '700 84px system-ui, -apple-system, Segoe UI, Roboto';
+  g.fillStyle = 'rgba(0,0,0,0.32)'; g.fillText('小恐龙躲水果', 140, 210);
+  g.fillStyle = '#dfe7ff'; g.fillText('小恐龙躲水果', 136, 206);
+
+  // 副标题
+  g.font = '800 28px system-ui, -apple-system, Segoe UI, Roboto';
+  g.fillStyle = 'rgba(255,255,255,0.85)';
+  g.fillText('像素风 · 关卡 · 任务 · 成就', 144, 252);
+
+  // 应用为背景
+  const url = cv.toDataURL('image/png');
+  bg.style.backgroundImage = `url('${url}')`;})(); 
 </style>
 </head>
 <body>
