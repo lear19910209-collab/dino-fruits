@@ -34,6 +34,8 @@
   .hint{position:fixed;right:12px;bottom:64px;background:rgba(0,0,0,.55);border:1px solid #2a2f3a;border-radius:10px;padding:8px 10px;font-size:12px;opacity:.95}
   .mission{position:fixed;left:50%;bottom:54px;transform:translateX(-50%);background:rgba(0,0,0,.55);border:1px solid #2a2f3a;border-radius:10px;padding:6px 10px;font-size:12px;opacity:.95}
 
+ try{ document.getElementById('overlay').classList.add('show'); }catch(e){}
+
   /* 封面 Banner 内生成（不依赖外链） */
 (function(){
   const bg = document.getElementById('coverBg');
@@ -150,7 +152,7 @@
 
   <!-- 封面 / 排行榜 / 设置 / 成就 -->
   <div id="overlay" class="overlay show">
-  <div id="coverBg" aria-hidden="true"></div>  <!-- 这行很关键！ -->
+  <div id="coverBg" aria-hidden="true"></div>
   <!-- 下面紧跟菜单卡片 menuCard / 排行榜 / 设置 ... -->
     <!-- v8.4: 全屏Banner层 -->
     <div id="coverBg" aria-hidden="true"></div>
