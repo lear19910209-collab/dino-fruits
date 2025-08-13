@@ -1,74 +1,6 @@
 <!doctype html>
 <html lang="zh">
 <head>
-  <style>
-  /* ===== 封面 UI美化（仅影响菜单卡片） ===== */
-
-/* 背景更偏右，露出恐龙；手机上稍微上移一点构图 */
-#coverBg{background-position: 70% 60% !important; /* 桌面：多展示右侧恐龙 */}
-@media (max-width: 768px){#coverBg{ background-position: 60% 45% !important; }}
-
-/* 让菜单卡片靠底居中，玻璃态，不挡画面主体 */
-#menuCard{align-self: flex-end;                         /* 仅菜单卡片靠底，其它面板不受影响 */
-  margin: 0 auto clamp(56px, 12vh, 120px) auto; /* 底部留白：自适应 */
-  max-width: min(88vw, 520px);
-  background: rgba(14,18,26,0.55);
-  border: 1px solid rgba(255,255,255,0.12);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.45);
-  backdrop-filter: blur(10px) saturate(120%);
-  -webkit-backdrop-filter: blur(10px) saturate(120%);
-  text-align: center;
-  animation: menuPop .35s ease-out both;}
-@keyframes menuPop{from{ transform: translateY(14px); opacity:0; }
-  to{ transform: translateY(0); opacity:1; }}
-
-/* 标题与行距微调，整体更紧凑 */
-#menuCard h1{ margin:4px 0 8px; font-size: 30px; letter-spacing:.3px; }
-#menuCard .small{ opacity:.85; line-height:1.5; }
-
-/* 按钮视觉升级：主行动更明显 */
-#menuCard .btn{ padding: 12px 18px; border-radius: 12px; }
-#start{background: linear-gradient(180deg,#3ea6ff,#1976ff);
-  color:#fff; border:0; font-weight:800; letter-spacing:.5px;
-  box-shadow: 0 6px 18px rgba(25,118,255,.35);}
-#start:active{ transform: translateY(1px); }
-
-/* 在小屏上稍缩卡片，避免再遮挡恐龙脚部 */
-@media (max-width:420px){#menuCard{ margin-bottom: 9vh; max-width: 92vw; }}
-
-/* === 封面叠放修复：bg(0) -> 遮罩(1) -> 卡片(2) === */
-
-/* 1) 背景层：不要再用负 z-index ！ */
-#coverBg{
-  position:fixed;
-  inset:0;
-  background:#0b0f17 center/cover no-repeat;
-  z-index:0;                    /* ★ 原来是 -1，改成 0 */
-  opacity:.95;
-}
-
-/* 2) overlay 自己不要再涂黑背景，交给 ::before 来做遮罩 */
-.overlay{
-  position:fixed; inset:0;
-  display:flex; align-items:center; justify-content:center;
-  visibility:hidden; opacity:0; transition:.2s;
-  background:none !important;    /* ★ 关键：避免把 bg 压下去后还看不见 */
-}
-.show{ visibility:visible; opacity:1; }
-
-/* 3) 用伪元素当半透明遮罩，盖在封面图上面 */
-.overlay.show::before{
-  content:"";
-  position:fixed; inset:0;
-  background:rgba(0,0,0,.35);
-  z-index:1;}
-
-/* 4) 所有弹窗卡片放到最上层，盖过遮罩 */
-#menuCard, #lbCard, #settingsCard, #achCard{
-  position:relative;
-  z-index:2;                     /* ★ 保证卡片在遮罩之上 */}
-<style>
-<head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>小恐龙躲水果 · 像素 v8.4 · 取消炸弹雨+封面Banner</title>
@@ -187,6 +119,72 @@
   // 应用为背景
   const url = cv.toDataURL('image/png');
   bg.style.backgroundImage = `url('${url}')`;})(); 
+<style>
+  /* ===== 封面 UI美化（仅影响菜单卡片） ===== */
+
+/* 背景更偏右，露出恐龙；手机上稍微上移一点构图 */
+#coverBg{background-position: 70% 60% !important; /* 桌面：多展示右侧恐龙 */}
+@media (max-width: 768px){#coverBg{ background-position: 60% 45% !important; }}
+
+/* 让菜单卡片靠底居中，玻璃态，不挡画面主体 */
+#menuCard{align-self: flex-end;                         /* 仅菜单卡片靠底，其它面板不受影响 */
+  margin: 0 auto clamp(56px, 12vh, 120px) auto; /* 底部留白：自适应 */
+  max-width: min(88vw, 520px);
+  background: rgba(14,18,26,0.55);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  text-align: center;
+  animation: menuPop .35s ease-out both;}
+@keyframes menuPop{from{ transform: translateY(14px); opacity:0; }
+  to{ transform: translateY(0); opacity:1; }}
+
+/* 标题与行距微调，整体更紧凑 */
+#menuCard h1{ margin:4px 0 8px; font-size: 30px; letter-spacing:.3px; }
+#menuCard .small{ opacity:.85; line-height:1.5; }
+
+/* 按钮视觉升级：主行动更明显 */
+#menuCard .btn{ padding: 12px 18px; border-radius: 12px; }
+#start{background: linear-gradient(180deg,#3ea6ff,#1976ff);
+  color:#fff; border:0; font-weight:800; letter-spacing:.5px;
+  box-shadow: 0 6px 18px rgba(25,118,255,.35);}
+#start:active{ transform: translateY(1px); }
+
+/* 在小屏上稍缩卡片，避免再遮挡恐龙脚部 */
+@media (max-width:420px){#menuCard{ margin-bottom: 9vh; max-width: 92vw; }}
+
+/* === 封面叠放修复：bg(0) -> 遮罩(1) -> 卡片(2) === */
+
+/* 1) 背景层：不要再用负 z-index ！ */
+#coverBg{
+  position:fixed;
+  inset:0;
+  background:#0b0f17 center/cover no-repeat;
+  z-index:0;                    /* ★ 原来是 -1，改成 0 */
+  opacity:.95;
+}
+
+/* 2) overlay 自己不要再涂黑背景，交给 ::before 来做遮罩 */
+.overlay{
+  position:fixed; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  visibility:hidden; opacity:0; transition:.2s;
+  background:none !important;    /* ★ 关键：避免把 bg 压下去后还看不见 */
+}
+.show{ visibility:visible; opacity:1; }
+
+/* 3) 用伪元素当半透明遮罩，盖在封面图上面 */
+.overlay.show::before{
+  content:"";
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.35);
+  z-index:1;}
+
+/* 4) 所有弹窗卡片放到最上层，盖过遮罩 */
+#menuCard, #lbCard, #settingsCard, #achCard{
+  position:relative;
+  z-index:2;                     /* ★ 保证卡片在遮罩之上 */}
 </style>
 </head>
 <body>
