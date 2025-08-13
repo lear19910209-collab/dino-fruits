@@ -243,6 +243,38 @@
 /* 在小屏上稍缩卡片，避免再遮挡恐龙脚部 */
 @media (max-width:420px){#menuCard{ margin-bottom: 9vh; max-width: 92vw; }}
 
+/* === 封面叠放修复：bg(0) -> 遮罩(1) -> 卡片(2) === */
+
+/* 1) 背景层：不要再用负 z-index ！ */
+#coverBg{
+  position:fixed;
+  inset:0;
+  background:#0b0f17 center/cover no-repeat;
+  z-index:0;                    /* ★ 原来是 -1，改成 0 */
+  opacity:.95;
+}
+
+/* 2) overlay 自己不要再涂黑背景，交给 ::before 来做遮罩 */
+.overlay{
+  position:fixed; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  visibility:hidden; opacity:0; transition:.2s;
+  background:none !important;    /* ★ 关键：避免把 bg 压下去后还看不见 */
+}
+.show{ visibility:visible; opacity:1; }
+
+/* 3) 用伪元素当半透明遮罩，盖在封面图上面 */
+.overlay.show::before{
+  content:"";
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.35);
+  z-index:1;}
+
+/* 4) 所有弹窗卡片放到最上层，盖过遮罩 */
+#menuCard, #lbCard, #settingsCard, #achCard{
+  position:relative;
+  z-index:2;                     /* ★ 保证卡片在遮罩之上 */}
+
 <script>
 /* ================ Settings ================ */
 const SETTINGS_KEY='dino_settings_v2';
