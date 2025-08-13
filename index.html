@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>小恐龙躲水果 · 像素 v8.3 · 难度曲线+封面+重开</title>
+<title>小恐龙躲水果 · 像素 v8.4 · 取消炸弹雨+封面Banner</title>
 <style>
   html,body{height:100%;margin:0;background:#0c0f12;color:#eef;font-family:system-ui,-apple-system,Segoe UI,Roboto}
   .wrap{display:flex;align-items:center;justify-content:center;height:100%}
@@ -20,9 +20,9 @@
   .combo{position:fixed;left:50%;top:56px;transform:translateX(-50%);font-weight:900;font-size:20px;pointer-events:none;text-shadow:0 2px 8px rgba(0,0,0,.5);opacity:.95}
   .levelBanner{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%) scale(.6);font-size:26px;font-weight:900;letter-spacing:.5px;background:rgba(0,0,0,.35);padding:10px 14px;border:1px solid #2a2f3a;border-radius:12px;opacity:0;transition:.28s}
   .tip{position:fixed;left:12px;bottom:12px;font-size:12px;opacity:.85}
-  .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);visibility:hidden;opacity:0;transition:.2s}
+  .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);visibility:hidden;opacity:0;transition:.2s}
   .show{visibility:visible;opacity:1}
-  .card{background:#151a22;border:1px solid #2a2f3a;padding:18px 20px;border-radius:16px;text-align:center;max-width:92vw;color:#dfe7ff}
+  .card{position:relative;background:#151a22;border:1px solid #2a2f3a;padding:18px 20px;border-radius:16px;text-align:center;max-width:92vw;color:#dfe7ff}
   .btn{display:inline-block;margin-top:10px;padding:10px 16px;border-radius:10px;border:1px solid #2a2f3a;background:#18202b;cursor:pointer;user-select:none}
   .small{opacity:.8;font-size:13px;margin-top:6px}
   .lb{position:fixed;right:12px;bottom:12px;font-size:12px;opacity:.95;background:rgba(255,255,255,.06);border:1px solid #2a2f3a;border-radius:10px;padding:6px 10px}
@@ -31,10 +31,14 @@
   .form-row{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center;margin:8px 0}
   .hint{position:fixed;right:12px;bottom:64px;background:rgba(0,0,0,.55);border:1px solid #2a2f3a;border-radius:10px;padding:8px 10px;font-size:12px;opacity:.95}
   .mission{position:fixed;left:50%;bottom:54px;transform:translateX(-50%);background:rgba(0,0,0,.55);border:1px solid #2a2f3a;border-radius:10px;padding:6px 10px;font-size:12px;opacity:.95}
+
+  /* v8.4: 封面全屏 Banner 背景层 */
+  #coverBg{position:fixed;inset:0;background:#0b0f17 center/cover no-repeat;z-index:-1;opacity:.9}
+  #overlay.show #coverBg{opacity:1}
 </style>
 </head>
 <body>
-  <div class="tag">🦖 Dino & Fruits · 像素 v8.3</div>
+  <div class="tag">🦖 Dino & Fruits · 像素 v8.4</div>
 
   <div class="hud">
     分数：<span id="score">0</span>
@@ -64,6 +68,9 @@
 
   <!-- 封面 / 排行榜 / 设置 / 成就 -->
   <div id="overlay" class="overlay">
+    <!-- v8.4: 全屏Banner层 -->
+    <div id="coverBg" aria-hidden="true"></div>
+
     <!-- 封面 -->
     <div class="card" id="menuCard">
       <h1 style="margin:4px 0 6px;font-size:28px">🦖 小恐龙躲水果</h1>
@@ -148,6 +155,15 @@ const lbAgain=document.getElementById('lbAgain'), lbError=document.getElementByI
 const achCard=document.getElementById('achCard'), achClose=document.getElementById('achClose'), achList=document.getElementById('achList');
 const coinCntEl=document.getElementById('coinCnt'), firstHintEl=document.getElementById('firstHint'), missionBar=document.getElementById('missionBar');
 
+/* v8.4: 封面 Banner 试图加载 */
+(function(){
+  const bg = document.getElementById('coverBg');
+  const img=new Image();
+  img.onload=()=>{ bg.style.backgroundImage="url('assets/banner.jpg')"; };
+  img.onerror=()=>{ bg.style.background='radial-gradient(1200px 700px at 50% -100px,#1a2030,#0f1115)'; };
+  img.src='assets/banner.jpg';
+})();
+
 /* 封面快捷按钮 */
 document.getElementById('openSettings').onclick=()=>openSettings();
 document.getElementById('openAch').onclick=()=>openAch();
@@ -175,7 +191,7 @@ let maxCombo=0, coinsGot=0, diedAtLevel=1;
 let firstSeen={coin:false,ice:false,shield:false,bomb:false};
 let safeBombsRun=0, freezesUsedRun=0;
 
-/* ===== 成就系统 ===== */
+/* ===== 成就系统（原样） ===== */
 const ACH_KEY='dino_achievements_v1';
 let achievements=loadAchievements();
 function loadAchievements(){ try{ return JSON.parse(localStorage.getItem(ACH_KEY)||'{}')||{}; }catch(e){ return {}; } }
@@ -186,14 +202,14 @@ function refreshAchList(){
   achList.innerHTML = defs.map(([k,txt])=>`${achievements[k]?'✅':'⬜️'} ${txt} ${achievements[k]?`<span style="opacity:.7">(${achievements[k].date})</span>`:''}`).map(li=>`<li>${li}</li>`).join('');
 }
 
-/* ===== 局内任务 ===== */
+/* ===== 局内任务（原样） ===== */
 let mission=null, bestComboThisLevel=0, coinsThisLevel=0;
 function rollMission(){ const t=(level%2===1)?'combo3':'coins10'; mission=(t==='combo3')?{type:'combo3',goal:3,progress:0,done:false}:{type:'coins10',goal:10,progress:0,done:false}; bestComboThisLevel=0; coinsThisLevel=0; updateMissionUI(); }
 function updateMissionUI(){ if(!mission){ missionBar.style.display='none'; return; } missionBar.textContent = mission.done?`✅ 任务完成！奖励已发放`:(mission.type==='combo3'?`🎯 本关任务：达成 ${mission.goal} 连击（当前 ${Math.min(bestComboThisLevel,mission.goal)}/${mission.goal}）`:`🎯 本关任务：收集 ${mission.goal} 枚金币（当前 ${Math.min(coinsThisLevel,mission.goal)}/${mission.goal}）`); missionBar.style.display=''; }
 function tryFinishMission(){ if(!mission||mission.done)return; if((mission.type==='combo3'&&bestComboThisLevel>=mission.goal)||(mission.type==='coins10'&&coinsThisLevel>=mission.goal)) onMissionComplete(); }
 function onMissionComplete(){ mission.done=true; addScore(20,true); shield+=2.0; tip('✅ 任务完成：+20 分 & 临时护盾'); unlockAch('mission_first','完成第一条关卡任务'); updateMissionUI(); }
 
-/* ===== Audio（含多风格BGM） ===== */
+/* ===== Audio（原样） ===== */
 let audioCtx=null, masterGain=null, bgmTimer=null, muted=false;
 function initAudio(){ if(audioCtx) return; audioCtx=new (window.AudioContext||window.webkitAudioContext)(); masterGain=audioCtx.createGain(); setVolume(settings.volume); masterGain.connect(audioCtx.destination); }
 function setVolume(v){ if(!masterGain) return; masterGain.gain.value=(v/100)*0.9; }
@@ -211,7 +227,7 @@ function stopBGM(){ if(bgmTimer){ clearInterval(bgmTimer); bgmTimer=null; } }
 function renderLives(){ let hearts=''; for(let i=0;i<lives;i++) hearts+='❤️'; livesEl.textContent=`· 生命：${hearts||'—'}`; }
 function addScore(n){ score+=n; scoreEl.textContent=score; scoreEl.style.transform='scale(1.08)'; setTimeout(()=>scoreEl.style.transform='scale(1)',90); sfxScore(); if(score>best){ best=score; bestEl.textContent=best; localStorage.setItem('dino_highscore_v8',best); sfxBest(); } }
 
-/* ===== Pixel helpers ===== */
+/* ===== Pixel helpers（原样） ===== */
 function pClear(){ c.setTransform(1,0,0,1,0,0); c.clearRect(0,0,pcanvas.width,pcanvas.height); c.setTransform(1,0,0,1,0,0); }
 function pPresent(){ mc.clearRect(0,0,W,H); mc.imageSmoothingEnabled=false; mc.drawImage(pcanvas,0,0,W,H); }
 function pixRect(x,y,w,h,col='#fff',alpha=1){ c.globalAlpha=alpha; c.fillStyle=col; c.fillRect((x*settings.px)|0,(y*settings.px)|0,Math.max(1,(w*settings.px)|0),Math.max(1,(h*settings.px)|0)); c.globalAlpha=1; }
@@ -220,7 +236,7 @@ function pixText(x,y,txt,size=16,col='#fff'){ c.fillStyle=col; c.font=`bold ${(s
 function pixOutlineRect(x,y,w,h,col='#000'){ pixRect(x-2,y-2,w+4,2,col); pixRect(x-2,y+h,w+4,2,col); pixRect(x-2,y,2,h,col); pixRect(x+w,y,2,h,col); }
 function pixOutlineCircle(x,y,r,col='#000'){ pixCircle(x,y,r+2,col,0.9); }
 
-/* ===== Dino ===== */
+/* ===== Dino（原样） ===== */
 const dino={x:W/2,y:H-110,w:54,h:32,speed:4.6,vx:0};
 function drawDino(){
   pixCircle(dino.x,dino.y+18,16,'rgba(0,0,0,.28)');
@@ -235,7 +251,7 @@ function drawDino(){
   if(dashing>0) pixRect(dino.x-32-10*Math.sign(dino.vx||1),dino.y-18,68,32,'rgba(169,255,209,.14)');
 }
 
-/* ===== Fruits & Items ===== */
+/* ===== Fruits & Items（原样） ===== */
 const FRUIT_TYPES=[
   {name:'apple',w:[26,34],h:20,col:'#ff6b6b',draw:b=>{ fruitShadow(b); if(settings.cb==='on') pixOutlineRect(b.x-1,b.y-1,b.w+2,b.h+2,'#000'); pixRect(b.x,b.y,b.w,b.h,b.col); pixRect(b.x+b.w*0.7,b.y-2,6,4,'#6ad66a'); }},
   {name:'banana',w:[30,44],h:12,col:'#ffd166',draw:b=>{ fruitShadow(b); if(settings.cb==='on') pixOutlineRect(b.x-1,b.y+1,b.w+2,6,'#000'); pixRect(b.x,b.y+4,b.w,4,b.col); pixRect(b.x+4,b.y+2,b.w-8,4,b.col); }},
@@ -253,22 +269,33 @@ function drawBomb(b){ fruitShadow({x:b.x,y:b.y,w:b.w,h:b.h}); if(settings.cb==='
 const rnd=(a,b)=>Math.random()*(b-a)+a;
 let fruits=[],powers=[],coins=[],bombs=[],particles=[],floatTexts=[];
 
+/* v8.4: 炸弹生成限制参数 */
+function bombCap(){ return Math.min(6, 2 + Math.floor((level-1)/2)); }          // 同屏炸弹上限：前期2，逐步+1
+function bombMinDist(){ return (level<4? 140 : 100); }                           // 炸弹之间最小间距（像素）
+function canSpawnBombAt(x,y){
+  if(bombs.length >= bombCap()) return false;
+  for(const b of bombs){
+    const dx=(b.x+b.w/2)-x, dy=(b.y+b.h/2)-y;
+    if(Math.hypot(dx,dy) < bombMinDist()) return false;
+  }
+  return true;
+}
+
 function difficultyFactor(){ // 0.0(易)->1.0(难)
   const L = Math.max(1, level);
   return Math.min(1, (L-1)/10); // 11关到顶
 }
 function fruitPool(){
-  // 第3关起开放到全部水果
   const n = Math.min(FRUIT_TYPES.length, (level<3?3:FRUIT_TYPES.length));
   return FRUIT_TYPES.slice(0, n);
 }
 function shouldSpawnFruit(){
-  let p = 0.85 - difficultyFactor()*0.25; // 全局基线
+  let p = 0.85 - difficultyFactor()*0.25;
   if(level<=2) p -= 0.35;                 // 前两关放水
   if(level===2 && levelRule==='Gold Rush') p = 0.10; // 第2关金币雨：几乎不下水果
-  if(levelRule==='Bomb Storm') p += 0.10;
+  if(levelRule==='Bomb Storm') p += 0.06;  834B9316-38B9-4A3D-869F-AA0B02492248// v8.4: 略微增密但受炸弹限制
   if(levelRule==='Speed Up') p += 0.05;
-  if(levelRule==='Gold Rush' && level>=4) p += 0.10; // 后期金币雨适当加点水果
+  if(levelRule==='Gold Rush' && level>=4) p += 0.10;
   return Math.random() < Math.max(0,Math.min(1,p));
 }
 function spawnFruit(){
@@ -284,9 +311,11 @@ function spawnFruit(){
 function spawnShield(){ const w=26,h=26,x=rnd(10,W-10-w),y=-30; let vy=(freezeAll>0?0.8:1)*(rnd(2.0,3.0)+difficultyFactor()*1.2); powers.push({kind:'shield',x,y,w,h,vy}); }
 function spawnSnow(){ const w=28,h=28,x=rnd(10,W-10-w),y=-30; let vy=(freezeAll>0?0.8:1)*(rnd(2.0,2.8)+difficultyFactor()*1.0); powers.push({kind:'ice',x,y,w,h,vy}); }
 function spawnCoin(){ const w=26,h=26,x=rnd(10,W-10-w),y=-30; let vy=rnd(2.0,3.4)+difficultyFactor()*1.4; if(freezeAll>0) vy*=0.2; coins.push({x,y,w,h,vy}); }
-function spawnBomb(){ const w=26,h=26,x=rnd(10,W-10-w),y=-30; let vy=rnd(2.2,3.6)+difficultyFactor()*1.6; if(freezeAll>0) vy*=0.2; bombs.push({x,y,w,h,vy}); }
+/* v8.4：允许指定 x，便于做间距限制 */
+function spawnBombAt(x){ const w=26,h=26,y=-30; let vy=rnd(2.2,3.6)+difficultyFactor()*1.6; if(freezeAll>0) vy*=0.2; bombs.push({x,y,w,h,vy}); }
+function spawnBomb(){ const w=26; const x=rnd(10,W-10-w); spawnBombAt(x); }
 
-/* ===== 背景/粒子/文字（与前版一致） ===== */
+/* ===== 背景/粒子/文字（原样） ===== */
 function drawParallax(){
   const t=(Math.sin(perfNow/12)+1)/2;
   const top=lerpColor([22,28,58],[4,8,20],t), bot=lerpColor([120,170,255],[30,40,70],t);
@@ -306,16 +335,16 @@ function floatText(x,y,txt,col='#fff'){ floatTexts.push({x,y,txt,col,life:1}); }
 function drawParticles(){ for(let i=particles.length-1;i>=0;i--){ const p=particles[i]; p.x+=p.vx; p.y+=p.vy; p.vy+=0.1; p.life-=0.016; if(p.life<=0) particles.splice(i,1);} particles.forEach(p=>pixCircle(p.x,p.y,p.r,p.col,Math.max(0,p.life))); }
 function drawFloatTexts(){ floatTexts.forEach(ft=>{ ft.y-=0.6; ft.life-=0.02; c.globalAlpha=Math.max(0,ft.life); pixText(ft.x,ft.y,ft.txt,18,ft.col); c.globalAlpha=1; }); floatTexts=floatTexts.filter(ft=>ft.life>0); }
 
-/* ===== Banner ===== */
+/* ===== Banner（原样） ===== */
 function showBanner(text){ bannerEl.textContent=text; bannerEl.style.opacity=1; bannerEl.style.transform='translate(-50%,-50%) scale(.6)'; for(let i=0;i<28;i++) splash(W/2+rnd(-40,40),H*0.4+rnd(-12,12),'#ffd166',1); setTimeout(()=>{ bannerEl.style.transform='translate(-50%,-50%) scale(1)'; },10); setTimeout(()=>{ bannerEl.style.opacity=0; },1600); }
 
-/* ===== Input ===== */
+/* ===== Input（原样） ===== */
 document.addEventListener('keydown',e=>{ if(e.key==='r'||e.key==='R'){ startGame(); return; } if(e.key===' '){ togglePause(); return; } keys.add(e.key); if((e.key==='Shift'||e.key==='ShiftLeft'||e.key==='ShiftRight')&&settings.hints){ hideFirstHint(); }});
 document.addEventListener('keyup',e=>keys.delete(e.key));
 const touch=x=>{ const rect=canvas.getBoundingClientRect(); pointerX=x-rect.left; if(settings.hints) hideFirstHint(); };
 canvas.addEventListener('pointerdown',e=>touch(e.clientX)); canvas.addEventListener('pointermove',e=>{ if(e.buttons) touch(e.clientX); }); window.addEventListener('pointerup',()=>{ pointerX=null; });
 
-/* ===== 排行榜（更健壮） ===== */
+/* ===== 排行榜（原样） ===== */
 const lbKey='dino_lb_top5';
 function loadLeaderboard(){ try{ const a=JSON.parse(localStorage.getItem(lbKey)||'[]'); return Array.isArray(a)?a:[]; }catch(e){ return []; } }
 function saveLeaderboard(arr){ try{ localStorage.setItem(lbKey, JSON.stringify(arr.slice(0,5))); lbError.style.display='none'; }catch(e){ lbError.textContent='⚠️ 浏览器禁止保存本地数据（隐私模式或设置导致）。排行榜将不会持久化。'; lbError.style.display='block'; } }
@@ -332,18 +361,18 @@ function showLeaderboard(fromOver){
 }
 function saveToLeaderboard(name,sc){ const lb=loadLeaderboard(); lb.push({name,score:sc,date:formatDate()}); lb.sort((a,b)=>b.score-a.score); saveLeaderboard(lb); lbList.innerHTML = lb.map(e=>`<li><b>${e.name||'Player'}</b> — ${e.score} 分 <span style="opacity:.7">(${e.date||''})</span></li>`).join(''); }
 
-/* ===== 成就面板 ===== */
+/* ===== 成就面板（原样） ===== */
 function openAch(){ refreshAchList(); menuCard.style.display='none'; lbCard.style.display='none'; achCard.style.display=''; overlay.classList.add('show'); }
 achBtn.addEventListener('click',openAch);
 achClose.addEventListener('click',()=>{ achCard.style.display='none'; if(state!=='menu') overlay.classList.remove('show'); else menuCard.style.display=''; });
 
-/* ===== Settings 面板 ===== */
+/* ===== Settings 面板（原样） ===== */
 function openSettings(){ volSel.value=settings.volume; musicSel.value=settings.music; sfxSel.value=settings.sfx; bgmStyleSel.value=settings.bgm; pxSel.value=String(settings.px); cbSel.value=settings.cb; hintsSel.value=settings.hints?'on':'off'; menuCard.style.display='none'; lbCard.style.display='none'; achCard.style.display='none'; settingsCard.style.display=''; overlay.classList.add('show'); }
 function closeSettings(){ settingsCard.style.display='none'; if(state!=='menu') overlay.classList.remove('show'); else menuCard.style.display=''; }
 saveSettingsBtn.addEventListener('click',()=>{ settings.volume=Number(volSel.value); settings.music=musicSel.value; settings.sfx=sfxSel.value; settings.bgm=bgmStyleSel.value; settings.px=Number(pxSel.value); settings.cb=cbSel.value; settings.hints=(hintsSel.value==='on'); saveSettings(); if(!audioCtx) initAudio(); setVolume(settings.volume); stopBGM(); if(state==='play'&&!muted) startBGM(); pInitCanvas(); initRain(); clampAll(); closeSettings(); });
 cancelSettingsBtn.addEventListener('click',closeSettings);
 
-/* ===== Buttons ===== */
+/* ===== Buttons（原样） ===== */
 startBtn.addEventListener('click',()=>{ initAudio(); audioCtx.resume(); startGame(); });
 document.getElementById('openSettings').addEventListener('click',openSettings);
 document.getElementById('openAch').addEventListener('click',openAch);
@@ -361,7 +390,7 @@ lbClose.addEventListener('click',()=>{ // 结束后“返回”直接回封面
 });
 lbSave.addEventListener('click',()=>{ const name=(lbName.value||'Player').trim().slice(0,16); saveToLeaderboard(name,score); lbInputWrap.style.display='none'; });
 
-/* ===== Game flow ===== */
+/* ===== Game flow（原样） ===== */
 function reset(){
   dino.x=W/2; dino.y=H-110; dino.vx=0;
   fruits.length=0; powers.length=0; coins.length=0; bombs.length=0; particles.length=0; floatTexts.length=0;
@@ -415,12 +444,27 @@ function update(dt){
 
   powerTimer-=dt; coinTimer-=dt; bombTimer-=dt; iceTimer-=dt;
   if(powerTimer<=0){ if(Math.random()<0.45) spawnShield(); powerTimer=rnd(2.0,3.4); }
+
   // Gold Rush：前两关高概率金币，不下炸弹
   const goldRushBoost = (levelRule==='Gold Rush') ? (level<=3?0.95:0.75) : 0.6;
   if(iceTimer<=0 || levelRule==='Ice Age'){ if(Math.random()<(levelRule==='Ice Age'?0.85:0.5)) spawnSnow(); iceTimer=rnd(3.0,5.0); }
   if(coinTimer<=0 || levelRule==='Gold Rush'){ if(Math.random()<goldRushBoost) spawnCoin(); coinTimer=rnd(2.6,4.4); }
+
+  /* v8.4 核心：炸弹仅在定时器触发时尝试生成 + 上限&间距限制
+     —— 修复“满屏炸弹”（不再在 Bomb Storm 时每帧刷） */
   if(levelRule!=='Gold Rush' || level>=4){ // 早期金币雨不下炸弹
-    if(bombTimer<=0 || levelRule==='Bomb Storm'){ if(Math.random()<(levelRule==='Bomb Storm'?0.9:0.55)) spawnBomb(); bombTimer=rnd(2.2,3.8); }
+    if(bombTimer<=0){
+      // 基础概率随难度上升；Bomb Storm 仅小幅加成（Level 3 温和）
+      const baseProb = 0.22 + difficultyFactor()*0.28;
+      const stormBoost = (levelRule==='Bomb Storm') ? (level<4 ? 0.08 : 0.20) : 0.0;
+      const trySpawn = Math.random() < (baseProb + stormBoost);
+      if(trySpawn){
+        const x = rnd(10, W-36), y = -18;
+        if(canSpawnBombAt(x,y)) spawnBombAt(x);
+      }
+      // 定时器：Bomb Storm 略快，但仍是“定时触发”而非每帧
+      bombTimer = (levelRule==='Bomb Storm' ? rnd(1.2,2.0) : rnd(2.2,3.8));
+    }
   }
 
   const slow=freezeAll>0?0.2:1; fruits.forEach(b=>b.y+=b.vy*slow); powers.forEach(p=>p.y+=p.vy*slow); coins.forEach(g=>g.y+=g.vy*slow); bombs.forEach(b=>b.y+=b.vy*slow);
@@ -448,32 +492,32 @@ function update(dt){
 function draw(){ pClear(); drawParallax(); if(rainy||levelRule==='Heavy Rain') drawRain(); drawParticles(); drawDino(); fruits.forEach(b=>b.type.draw(b)); powers.forEach(p=>p.kind==='shield'?drawShieldItem(p):drawSnow(p)); coins.forEach(g=>drawCoin(g)); bombs.forEach(b=>drawBomb(b)); pixRect(10,H-14,Math.min(1,time/30)*(W-20),4,'rgba(255,255,255,.3)'); drawFloatTexts(); if(freezeAll>0) pixRect(0,0,W,H,'rgba(120,180,255,0.10)'); }
 function loop(ts){ if(!loop.last) loop.last=ts; const dt=Math.min(0.033,(ts-loop.last)/1000); loop.last=ts; perfNow=ts/1000; if(state==='play'){ update(dt); draw(); pPresent(); } else { pClear(); draw(); pPresent(); } requestAnimationFrame(loop); }
 
-/* ===== Rain ===== */
+/* ===== Rain（原样） ===== */
 function drawRain(){ for(let r of raindrops){ pixRect(r.x,r.y,2,10,'rgba(200,220,255,.25)'); r.x-=1.2; r.y+=r.v; if(r.y>H){ r.y=-10; r.x=Math.random()*W; } } }
 
-/* ===== 碰撞/结束 ===== */
+/* ===== 碰撞/结束（原样） ===== */
 function hitBox(px,py,pw,ph,bx,by,bw,bh,k=1){ return Math.abs(px-bx)<(pw/2+bw/2)*k && Math.abs(py-by)<(ph/2+bh/2)*k; }
 function onHit(){ if(shield>0){ shield=0; sfxHit(); splash(dino.x,dino.y-8,'#7dffa5',22); return; } lives-=1; renderLives(); sfxHit(); invincible=1.2; combo=0; comboEl.textContent=''; splash(dino.x,dino.y-8,'#ff6b6b',22); fruits=fruits.filter(b=>b.y<dino.y-50); if(lives<=0){ diedAtLevel=level; gameOver(); } }
 function gameOver(){ state='dead'; stopBGM(); if(score>=best){ best=score; bestEl.textContent=best; localStorage.setItem('dino_highscore_v8',best); } showLeaderboard(true); }
 
-/* ===== 规则 ===== */
+/* ===== 规则（原样，提示文本小调） ===== */
 function setRule(rule){
   levelRule=rule;
   if(rule==='Reverse Controls') tip('方向键已反向（触控不变）');
   if(rule==='Gold Rush') tip(level<=3?'Gold Rush：金币暴雨（前期不下炸弹/少量水果）':'Gold Rush：更多金币');
   if(rule==='Ice Age') tip('❄️ 冰冻道具高发');
-  if(rule==='Bomb Storm') tip('💣 炸弹高发');
+  if(rule==='Bomb Storm') tip(level<4?'💣 轻度炸弹期（已限制密度）':'💣 炸弹增多（注意观察节奏）'); // v8.4 提示
   if(rule==='Heavy Rain') tip('🌧 大雨来袭');
   if(rule==='Speed Up') tip('⏩ 更快更密');
   showBanner(`LEVEL ${level} · ${rule}`);
 }
 function tip(t){ tipEl.textContent=t; setTimeout(()=>{ if(tipEl.textContent===t) tipEl.textContent=''; },2600); }
 
-/* ===== 首次引导 ===== */
+/* ===== 首次引导（原样） ===== */
 function showFirstHint(){ if(!settings.hints) return; const isTouch='ontouchstart' in window; firstHintEl.style.display=''; firstHintEl.textContent=isTouch?'👉 左右拖拽移动；右上角可暂停/静音。':'←/→ 移动 · Shift 冲刺 · 空格暂停'; setTimeout(()=>{ if(firstHintEl.style.display!=='none') firstHintEl.style.display='none'; },8000); }
 function hideFirstHint(){ settings.hints=false; saveSettings(); firstHintEl.style.display='none'; }
 
-/* ===== 自适应 ===== */
+/* ===== 自适应（原样） ===== */
 function onResize(){
   const vw=window.innerWidth, vh=window.innerHeight;
   const usableW = Math.max(360, vw - 32);
@@ -492,7 +536,7 @@ window.addEventListener('resize',onResize); window.addEventListener('orientation
 /* ===== Boot ===== */
 onResize();
 renderLives();
-overlay.classList.add('show');           // 进来就是封面
+overlay.classList.add('show'); 834B9316-38B9-4A3D-869F-AA0B02492248// 进来就是封面
 document.getElementById('menuCard').style.display='';
 draw(); pPresent();
 requestAnimationFrame(loop);
