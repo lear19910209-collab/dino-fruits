@@ -155,13 +155,14 @@ const lbAgain=document.getElementById('lbAgain'), lbError=document.getElementByI
 const achCard=document.getElementById('achCard'), achClose=document.getElementById('achClose'), achList=document.getElementById('achList');
 const coinCntEl=document.getElementById('coinCnt'), firstHintEl=document.getElementById('firstHint'), missionBar=document.getElementById('missionBar');
 
-/* v8.4: 封面 Banner 试图加载 */
+/* v8.4: 封面 Banner（使用你的 GitHub 图片直链） */
 (function(){
   const bg = document.getElementById('coverBg');
-  const img=new Image();
-  img.onload=()=>{ bg.style.backgroundImage="url('assets/banner.jpg')"; };
-  img.onerror=()=>{ bg.style.background='radial-gradient(1200px 700px at 50% -100px,#1a2030,#0f1115)'; };
-  img.src='assets/banner.jpg';
+  const BANNER_SRC = 'https://github.com/lear19910209-collab/dino-fruits/blob/main/834B9316-38B9-4A3D-869F-AA0B02492248.png?raw=true';
+  const img = new Image();
+  img.onload  = () => { bg.style.backgroundImage = `url('${BANNER_SRC}')`; };
+  img.onerror = () => { bg.style.background = 'radial-gradient(1200px 700px at 50% -100px,#1a2030,#0f1115)'; };
+  img.src = BANNER_SRC;
 })();
 
 /* 封面快捷按钮 */
@@ -293,7 +294,7 @@ function shouldSpawnFruit(){
   let p = 0.85 - difficultyFactor()*0.25;
   if(level<=2) p -= 0.35;                 // 前两关放水
   if(level===2 && levelRule==='Gold Rush') p = 0.10; // 第2关金币雨：几乎不下水果
-  if(levelRule==='Bomb Storm') p += 0.06;  834B9316-38B9-4A3D-869F-AA0B02492248// v8.4: 略微增密但受炸弹限制
+  if(levelRule==='Bomb Storm') p += 0.06;            // v8.4: 略微增密但受炸弹限制
   if(levelRule==='Speed Up') p += 0.05;
   if(levelRule==='Gold Rush' && level>=4) p += 0.10;
   return Math.random() < Math.max(0,Math.min(1,p));
@@ -536,7 +537,7 @@ window.addEventListener('resize',onResize); window.addEventListener('orientation
 /* ===== Boot ===== */
 onResize();
 renderLives();
-overlay.classList.add('show'); 834B9316-38B9-4A3D-869F-AA0B02492248// 进来就是封面
+overlay.classList.add('show');           // 进来就是封面
 document.getElementById('menuCard').style.display='';
 draw(); pPresent();
 requestAnimationFrame(loop);
