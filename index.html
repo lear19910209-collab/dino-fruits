@@ -185,6 +185,33 @@
 #menuCard, #lbCard, #settingsCard, #achCard{
   position:relative;
   z-index:2;                     /* ★ 保证卡片在遮罩之上 */}
+  /* --- 封面用 <img>，不走 background，彻底绕开 !important --- */
+#coverImg{
+  position: fixed; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: 70% 60%;       /* 右偏些，露出恐龙 */
+  z-index: 0;
+  pointer-events: none; user-select: none;
+}
+
+/* 半透明遮罩盖在封面图上（不要给 .overlay 自己设背景） */
+.overlay .veil{
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* 菜单/面板卡片在最上层 */
+#menuCard, #lbCard, #settingsCard, #achCard{
+  position: relative; z-index: 2;
+}
+
+/* 小屏对齐微调（可选） */
+@media (max-width: 768px){
+  #coverImg{ object-position: 60% 45%; }
+}
 </style>
 </head>
 <body>
@@ -218,6 +245,8 @@
 
   <!-- 封面 / 排行榜 / 设置 / 成就 -->
   <div id="overlay" class="overlay show">
+  <img id="coverImg" alt="" />
+  <div class="veil" aria-hidden="true"></div>
   <div id="coverBg" aria-hidden="true"></div>
   <!-- 下面紧跟菜单卡片 menuCard / 排行榜 / 设置 ... -->
     <!-- v8.4: 全屏Banner层 -->
@@ -980,6 +1009,67 @@ requestAnimationFrame(loop);
   ov.style.setProperty('background-size', 'cover', 'important');
   ov.style.setProperty('background-position', '70% 60%', 'important');
   ov.style.setProperty('background-repeat', 'no-repeat', 'important');
+})();
+</script>
+<script>
+(function(){
+  var ov=document.getElementById('overlay'); if(!ov) return;
+  ov.classList.add('show');
+  var img=document.getElementById('coverImg'); if(!img) return;
+
+  var w=1600,h=900,cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+  var g=cv.getContext('2d');
+
+  // 天空渐变
+  var grd=g.createLinearGradient(0,0,0,h);
+  grd.addColorStop(0,'#0f1628'); grd.addColorStop(1,'#0a0e16');
+  g.fillStyle=grd; g.fillRect(0,0,w,h);
+
+  // 云
+  function cloud(cx,cy,r){ g.fillStyle='rgba(255,255,255,.12)';
+    g.beginPath(); g.arc(cx-r*0.6,cy,r*0.7,0,Math.PI*2);
+    g.arc(cx,cy,r,0,Math.PI*2); g.arc(cx+r*0.7,cy+4,r*0.8,0,Math.PI*2); g.fill(); }
+  cloud(260,170,80); cloud(520,140,70); cloud(1050,180,90); cloud(1320,150,70);
+
+  // 山丘
+  function hills(color,amp,ybase,step,phase){
+    g.fillStyle=color; g.beginPath();
+    for(let x=0;x<=w;x+=step){
+      const y=ybase-amp*Math.sin((x+phase)*.006)-amp*.3*Math.sin((x+phase)*.018);
+      x?g.lineTo(x,y):g.moveTo(0,y);
+    }
+    g.lineTo(w,h); g.lineTo(0,h); g.closePath(); g.fill();
+  }
+  hills('rgba(40,60,100,.95)',28,h*0.62,8,0);
+  hills('rgba(60,80,120,.90)',18,h*0.68,8,80);
+
+  // 草地
+  g.fillStyle='#1b2e1e'; g.fillRect(0,h-140,w,140);
+  g.fillStyle='#284a2e'; g.fillRect(0,h-112,w,112);
+
+  // 装饰：水果/金币
+  function fruit(x,y,k){
+    if(k===0){ g.fillStyle='#ff6b6b'; g.fillRect(x,y,36,24); g.fillStyle='#6ad66a'; g.fillRect(x+26,y-8,6,8); }
+    else if(k===1){ g.fillStyle='#ffd166'; g.fillRect(x,y+6,44,6); g.fillRect(x+4,y,36,6); }
+    else if(k===2){ g.fillStyle='#ffa62b'; g.beginPath(); g.arc(x+16,y+16,16,0,Math.PI*2); g.fill(); }
+    else if(k===3){ g.fillStyle='#9b5de5'; for(let i=0;i<6;i++){const r=i>>1,c=i%3-1; g.beginPath(); g.arc(x+16+c*8,y+16+(r-.5)*8,7,0,Math.PI*2); g.fill();} }
+    else { g.fillStyle='#f4d35e'; g.beginPath(); g.arc(x+16,y+16,16,0,Math.PI*2); g.fill();
+           g.fillStyle='#ffe28a'; g.beginPath(); g.arc(x+16,y+16,12,0,Math.PI*2); g.fill(); }
+  }
+  for(let i=0;i<28;i++){ const k=i%5, x=(i*53)%w+(i%3)*11, y=80+(i*27)%420; fruit(x,y,k); }
+
+  // 像素小恐龙
+  function pixRect(x,y,w,h,c){ g.fillStyle=c; g.fillRect(x,y,w,h); }
+  const dx=w*.58, dy=h*.62, s=12, body='#3ecf6b', belly='#e8fff1';
+  g.fillStyle='rgba(0,0,0,.26)'; g.beginPath(); g.ellipse(dx-10,dy+90,140,26,0,0,Math.PI*2); g.fill();
+  pixRect(dx-16*s,dy-6*s,19*s,6*s,body); pixRect(dx+3*s,dy-8*s,7*s,5*s,body);
+  pixRect(dx+10*s,dy-6*s,4*s,3*s,body); pixRect(dx-2*s,dy-2*s,7*s,2*s,belly);
+  pixRect(dx-12*s,dy+2*s,4*s,2*s,belly); pixRect(dx-5*s,dy+2*s,4*s,2*s,belly);
+  pixRect(dx-16*s,dy-3*s,6*s,2*s,body); pixRect(dx-20*s,dy-5*s,5*s,2*s,body);
+  pixRect(dx+8*s,dy-7*s,1.6*s,1.6*s,'#0b0c10');
+
+  // 赋给 <img>
+  img.src = cv.toDataURL('image/png');
 })();
 </script>
 </body>
