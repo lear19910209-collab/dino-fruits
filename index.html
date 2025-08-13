@@ -212,6 +212,16 @@
 @media (max-width: 768px){
   #coverImg{ object-position: 60% 45%; }
 }
+#coverImg{
+  position: fixed; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: 70% 60%;
+  z-index: 0; pointer-events: none; user-select: none;
+}
+.overlay .veil{ position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:1; pointer-events:none; }
+#menuCard, #lbCard, #settingsCard, #achCard{ position:relative; z-index:2; }
+@media (max-width:768px){ #coverImg{ object-position: 60% 45%; } }
 </style>
 </head>
 <body>
