@@ -20,13 +20,53 @@
   .combo{position:fixed;left:50%;top:56px;transform:translateX(-50%);font-weight:900;font-size:20px;pointer-events:none;text-shadow:0 2px 8px rgba(0,0,0,.5);opacity:.95}
   .levelBanner{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%) scale(.6);font-size:26px;font-weight:900;letter-spacing:.5px;background:rgba(0,0,0,.35);padding:10px 14px;border:1px solid #2a2f3a;border-radius:12px;opacity:0;transition:.28s}
   .tip{position:fixed;left:12px;bottom:12px;font-size:12px;opacity:.85}
-  .overlay{position:fixed; inset:0; display:flex; align-items:center; justify-content:center;background:rgba(0,0,0,.35); visibility:hidden; opacity:0; transition:.2s; z-index:9999;}
-  .show{visibility:visible; opacity:1}/* 封面背景层 */
-  #coverBg{position:fixed; inset:0; background:#0b0f17 center/cover no-repeat; z-index:-1; opacity:.9}
+  <div id="overlay" class="overlay show">
+  <!-- ✅ 这两行一定要在 overlay 的第一位 -->
+  <img id="coverImg" alt="" />
+  <div class="veil" aria-hidden="true"></div>
+  <!-- 下面继续是你的封面菜单/排行榜/设置/成就 ... -->
+  <div class="card" id="menuCard">
+    <h1 style="margin:4px 0 6px;font-size:28px">🦖 小恐龙躲水果</h1>
+    <!-- 其余内容保持你原来的 -->
+  /* overlay 不再自带黑底，由 veil 遮罩负责 */
+  .overlay{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:none; visibility:hidden; opacity:0; transition:.2s; z-index:9999;}
+  .show{visibility:visible; opacity:1}
+
+  /* 如果你保留了 #coverBg，也别用负层级；不过我们主要用 <img> */
+  #coverBg{position:fixed; inset:0; background:#0b0f17 center/cover no-repeat; z-index:0; opacity:.9}
   #overlay.show #coverBg{opacity:1}
-  #coverImg{position: fixed; inset: 0;width: 100%; height: 100%;object-fit: cover;object-position: 70% 60%;z-index: 0; pointer-events: none; user-select: none;}
+
+  /* ⬇️ 关键：封面走 <img>，彻底绕开 background 的冲突 */
+  #coverImg{
+    position: fixed; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    object-position: 70% 60%;
+    z-index: 0;
+    pointer-events: none; user-select: none;
+  }
   .overlay .veil{ position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:1; pointer-events:none; }
   #menuCard, #lbCard, #settingsCard, #achCard{ position:relative; z-index:2; }
+
+  /* 让菜单卡片靠底，玻璃态 */
+  #menuCard{
+    align-self: flex-end;
+    margin: 0 auto clamp(56px, 12vh, 120px) auto;
+    max-width: min(88vw, 520px);
+    background: rgba(14,18,26,.55);
+    border: 1px solid rgba(255,255,255,.12);
+    box-shadow: 0 20px 60px rgba(0,0,0,.45);
+    backdrop-filter: blur(10px) saturate(120%);
+    -webkit-backdrop-filter: blur(10px) saturate(120%);
+    text-align: center; animation: menuPop .35s ease-out both;
+  }
+  @keyframes menuPop{from{ transform: translateY(14px); opacity:0; } to{ transform: translateY(0); opacity:1; }}
+  #menuCard h1{ margin:4px 0 8px; font-size: 30px; letter-spacing:.3px; }
+  #menuCard .small{ opacity:.85; line-height:1.5; }
+  #menuCard .btn{ padding: 12px 18px; border-radius: 12px; }
+  #start{background: linear-gradient(180deg,#3ea6ff,#1976ff); color:#fff; border:0; font-weight:800; letter-spacing:.5px; box-shadow: 0 6px 18px rgba(25,118,255,.35);}
+  #start:active{ transform: translateY(1px); }
+
   @media (max-width:768px){ #coverImg{ object-position: 60% 45%; } }
   .card{position:relative;background:#151a22;border:1px solid #2a2f3a;padding:18px 20px;border-radius:16px;text-align:center;max-width:92vw;color:#dfe7ff}
   .btn{display:inline-block;margin-top:10px;padding:10px 16px;border-radius:10px;border:1px solid #2a2f3a;background:#18202b;cursor:pointer;user-select:none}
@@ -37,8 +77,7 @@
   .form-row{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center;margin:8px 0}
   .hint{position:fixed;right:12px;bottom:64px;background:rgba(0,0,0,.55);border:1px solid #2a2f3a;border-radius:10px;padding:8px 10px;font-size:12px;opacity:.95}
   .mission{position:fixed;left:50%;bottom:54px;transform:translateX(-50%);background:rgba(0,0,0,.55);border:1px solid #2a2f3a;border-radius:10px;padding:6px 10px;font-size:12px;opacity:.95}
-
- try{ document.getElementById('overlay').classList.add('show'); }catch(e){}
+</style>
 
   /* 封面 Banner 内生成（不依赖外链） */
 (function(){
@@ -727,70 +766,49 @@ document.getElementById('menuCard').style.display='';
 draw(); pPresent();
 requestAnimationFrame(loop);
 </script>
-<script>
+    <script>
 (function makeCutePoster(){
   var ov = document.getElementById('overlay'); if(!ov) return;
   var img = document.getElementById('coverImg'); if(!img) return;
   ov.classList.add('show');
 
-  // 2x 像素密度，导出更清晰
   const DPR = 2, W = 1600, H = 1000;
   const c = document.createElement('canvas'); c.width = W*DPR; c.height = H*DPR;
   const g = c.getContext('2d'); g.scale(DPR, DPR);
 
-  // ===== 背景：浅蓝天空（扁平风） =====
+  // 天空
   let grd = g.createLinearGradient(0,0,0,H);
-  grd.addColorStop(0,'#a9d7ff');
-  grd.addColorStop(1,'#bee7ff');
+  grd.addColorStop(0,'#a9d7ff'); grd.addColorStop(1,'#bee7ff');
   g.fillStyle = grd; g.fillRect(0,0,W,H);
 
-  // ===== 大标题（粗描边 + 奶油色填充）=====
-  g.save();
-  g.lineJoin = 'round'; g.textBaseline = 'top';
-  const title = 'Dino & Fruits Game';
-  g.font = '900 140px system-ui,-apple-system,Segoe UI,Roboto';
-  g.strokeStyle = '#2b2f3a'; g.lineWidth = 26; g.strokeText(title, 120, 170);
-  g.fillStyle = '#fff3d6'; g.fillText(title, 120, 170);
+  // 标题（粗描边）
+  g.save(); g.lineJoin='round'; g.textBaseline='top';
+  g.font='900 140px system-ui,-apple-system,Segoe UI,Roboto';
+  g.strokeStyle='#2b2f3a'; g.lineWidth=26; g.strokeText('Dino & Fruits Game',120,170);
+  g.fillStyle='#fff3d6'; g.fillText('Dino & Fruits Game',120,170);
   g.restore();
 
-  // ===== 装饰水果（橙子 / 香蕉）=====
-  function orange(x,y,s=1){
-    const r = 28*s;
-    g.lineWidth = 10*s; g.strokeStyle = '#2b2f3a'; g.fillStyle = '#ffab38';
-    g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fill(); g.stroke();
-    g.fillStyle = '#36b364';
-    g.beginPath(); g.moveTo(x+r*0.2,y-r*0.9);
-    g.quadraticCurveTo(x+r*0.8,y-r*1.1, x+r*0.9, y-r*0.2);
-    g.quadraticCurveTo(x+r*0.4,y-r*0.2, x+r*0.2,y-r*0.9);
-    g.fill();
-  }
-  function banana(x,y,s=1){
-    g.save(); g.translate(x,y); g.scale(s,s);
-    g.lineWidth = 12; g.strokeStyle = '#2b2f3a'; g.fillStyle = '#ffd166';
-    g.beginPath();
-    g.moveTo(0,0);
-    g.quadraticCurveTo(120,40,240,0);
-    g.quadraticCurveTo(130,70,10,38);
-    g.closePath(); g.fill(); g.stroke();
-    g.restore();
-  }
-  orange(1330,160,1.0);
-  orange(220,120,0.85);
-  banana(120,735,1.12);
+  // 橙子/香蕉
+  function orange(x,y,s=1){ const r=28*s; g.lineWidth=10*s; g.strokeStyle='#2b2f3a'; g.fillStyle='#ffab38';
+    g.beginPath(); g.arc(x,y,r,0,7); g.fill(); g.stroke();
+    g.fillStyle='#36b364'; g.beginPath(); g.moveTo(x+r*.2,y-r*.9);
+    g.quadraticCurveTo(x+r*.8,y-r*1.1,x+r*.9,y-r*.2);
+    g.quadraticCurveTo(x+r*.4,y-r*.2,x+r*.2,y-r*.9); g.fill(); }
+  function banana(x,y,s=1){ g.save(); g.translate(x,y); g.scale(s,s);
+    g.lineWidth=12; g.strokeStyle='#2b2f3a'; g.fillStyle='#ffd166';
+    g.beginPath(); g.moveTo(0,0); g.quadraticCurveTo(120,40,240,0);
+    g.quadraticCurveTo(130,70,10,38); g.closePath(); g.fill(); g.stroke(); g.restore(); }
+  orange(1330,160,1.0); orange(220,120,0.85); banana(120,735,1.12);
 
-  // ===== 地面（沙地）=====
-  g.fillStyle = '#f7d46a'; g.fillRect(0,H-190,W,190);
-  g.fillStyle = '#e9bf4e'; g.fillRect(0,H-170,W,16);
-  function pebble(x,y){ g.fillStyle='#e9bf4e'; g.beginPath(); g.arc(x,y,6,0,7); g.fill(); }
-  for(let i=0;i<14;i++) pebble(80+i*100, H-70-(i%3)*10);
+  // 地面
+  g.fillStyle='#f7d46a'; g.fillRect(0,H-190,W,190);
+  g.fillStyle='#e9bf4e'; g.fillRect(0,H-170,W,16);
 
-  // ===== 右侧恐龙（圆角厚描边扁平风）=====
+  // 右侧恐龙（扁平厚描边）
   function dino(x,y,s=1){
     g.save(); g.translate(x,y); g.scale(s,s);
     const outline='#2b2f3a', fill='#4ccb6a', belly='#ffffff';
     g.lineJoin='round'; g.lineCap='round';
-
-    // 身体轮廓
     g.lineWidth=18; g.strokeStyle=outline; g.fillStyle=fill;
     g.beginPath();
     g.moveTo(0,-40);
@@ -803,31 +821,23 @@ requestAnimationFrame(loop);
     g.quadraticCurveTo(60,10,0,-10);
     g.closePath(); g.fill(); g.stroke();
 
-    // 肚皮 + 腿
-    g.fillStyle=belly;
-    g.fillRect(200,10,70,80);
-    g.strokeStyle=outline; g.lineWidth=10;
-    g.strokeRect(200,10,70,80);
+    g.fillStyle=belly; g.lineWidth=10; g.strokeStyle=outline;
+    g.fillRect(200,10,70,80); g.strokeRect(200,10,70,80);
     g.fillRect(150,80,60,28); g.strokeRect(150,80,60,28);
     g.fillRect(240,80,60,28); g.strokeRect(240,80,60,28);
 
-    // 嘴
     g.fillStyle=fill; g.strokeStyle=outline; g.lineWidth=10;
     g.fillRect(400,-10,40,30); g.strokeRect(400,-10,40,30);
 
-    // 眼睛
     g.fillStyle=outline; g.beginPath(); g.arc(340,-50,14,0,7); g.fill();
 
-    // 背部尖刺
     function spike(ax,ay){ g.beginPath(); g.moveTo(ax,ay); g.lineTo(ax-28,ay+30); g.lineTo(ax-2,ay+32); g.closePath(); g.fillStyle=outline; g.fill(); }
     spike(60,-40); spike(100,-60); spike(140,-78); spike(180,-92); spike(220,-100);
     g.restore();
   }
   dino(980, 670, 1.1);
 
-  // 导出到 <img>
   img.src = c.toDataURL('image/png');
-  // 让右侧恐龙多露一点
   img.style.objectPosition = '70% 60%';
 })();
 </script>
